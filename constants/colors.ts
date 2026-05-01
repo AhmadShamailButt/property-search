@@ -1,92 +1,106 @@
 export const Colors = {
   light: {
     // Core
-    primary: '#0a7ea4',
-    primaryLight: '#3da5c7',
-    primaryDark: '#065a75',
-    secondary: '#2e7d32',
-    secondaryLight: '#60ad5e',
-    secondaryDark: '#005005',
-    accent: '#ff9800',
+    primary: '#0F172A',
+    primaryLight: '#1E293B',
+    primaryDark: '#020617',
+    secondary: '#38BDF8',
+    secondaryLight: '#7DD3FC',
+    secondaryDark: '#0284C7',
+    accent: '#F43F5E',
 
     // Text
-    text: '#11181C',
-    textSecondary: '#687076',
-    textMuted: '#9BA1A6',
-    textInverse: '#ffffff',
+    text: '#0F172A',
+    textSecondary: '#64748B',
+    textMuted: '#94A3B8',
+    textInverse: '#FFFFFF',
 
     // Backgrounds
-    background: '#ffffff',
-    backgroundSecondary: '#f5f5f5',
-    card: '#ffffff',
-    surface: '#f8f9fa',
+    background: '#F8FAFC',
+    backgroundSecondary: '#F1F5F9',
+    card: '#FFFFFF',
+    surface: '#FFFFFF',
 
     // UI Elements
-    border: '#e0e0e0',
-    divider: '#eeeeee',
-    icon: '#687076',
-    tint: '#0a7ea4',
+    border: '#E2E8F0',
+    divider: '#F1F5F9',
+    icon: '#64748B',
+    tint: '#0F172A',
 
     // Tab Bar
-    tabIconDefault: '#687076',
-    tabIconSelected: '#0a7ea4',
+    tabIconDefault: '#94A3B8',
+    tabIconSelected: '#0F172A',
 
     // Status
-    success: '#4caf50',
-    warning: '#ff9800',
-    error: '#f44336',
-    info: '#2196f3',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+
+    // Status backgrounds (tinted overlays for banners / pills)
+    successBg: 'rgba(16, 185, 129, 0.12)',
+    warningBg: 'rgba(245, 158, 11, 0.12)',
+    errorBg: 'rgba(239, 68, 68, 0.12)',
+    infoBg: 'rgba(59, 130, 246, 0.12)',
 
     // Property Specific
-    price: '#2e7d32',
-    badge: '#0a7ea4',
-    favorite: '#e91e63',
-    rating: '#ffc107',
-    shadow: 'rgba(0, 0, 0, 0.1)',
+    price: '#0F172A',
+    badge: '#38BDF8',
+    favorite: '#F43F5E',
+    rating: '#FBBF24',
+    shadow: 'rgba(15, 23, 42, 0.08)',
+    shadowStrong: 'rgba(15, 23, 42, 0.15)',
   },
   dark: {
     // Core
-    primary: '#4db6d1',
-    primaryLight: '#80e8ff',
-    primaryDark: '#0a7ea4',
-    secondary: '#66bb6a',
-    secondaryLight: '#98ee99',
-    secondaryDark: '#338a3e',
-    accent: '#ffb74d',
+    primary: '#F8FAFC',
+    primaryLight: '#FFFFFF',
+    primaryDark: '#E2E8F0',
+    secondary: '#38BDF8',
+    secondaryLight: '#7DD3FC',
+    secondaryDark: '#0284C7',
+    accent: '#F43F5E',
 
     // Text
-    text: '#ECEDEE',
-    textSecondary: '#9BA1A6',
-    textMuted: '#687076',
-    textInverse: '#11181C',
+    text: '#F8FAFC',
+    textSecondary: '#94A3B8',
+    textMuted: '#64748B',
+    textInverse: '#0F172A',
 
     // Backgrounds
-    background: '#151718',
-    backgroundSecondary: '#1e2022',
-    card: '#1e2022',
-    surface: '#252729',
+    background: '#020617',
+    backgroundSecondary: '#0F172A',
+    card: '#0B1120',
+    surface: '#1E293B',
 
     // UI Elements
-    border: '#333638',
-    divider: '#2a2d2f',
-    icon: '#9BA1A6',
-    tint: '#ffffff',
+    border: '#1E293B',
+    divider: '#0F172A',
+    icon: '#94A3B8',
+    tint: '#38BDF8',
 
     // Tab Bar
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: '#ffffff',
+    tabIconDefault: '#64748B',
+    tabIconSelected: '#38BDF8',
 
     // Status
-    success: '#81c784',
-    warning: '#ffb74d',
-    error: '#e57373',
-    info: '#64b5f6',
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    info: '#3B82F6',
+
+    // Status backgrounds (tinted overlays for banners / pills)
+    successBg: 'rgba(16, 185, 129, 0.18)',
+    warningBg: 'rgba(245, 158, 11, 0.18)',
+    errorBg: 'rgba(239, 68, 68, 0.18)',
+    infoBg: 'rgba(59, 130, 246, 0.18)',
 
     // Property Specific
-    price: '#81c784',
-    badge: '#4db6d1',
-    favorite: '#f48fb1',
-    rating: '#ffd54f',
-    shadow: 'rgba(0, 0, 0, 0.3)',
+    price: '#F8FAFC',
+    badge: '#38BDF8',
+    favorite: '#F43F5E',
+    rating: '#FBBF24',
+    shadow: 'rgba(0, 0, 0, 0.5)',
+    shadowStrong: 'rgba(0, 0, 0, 0.8)',
   },
 };
