@@ -21,10 +21,11 @@ function RootNavigator() {
     SplashScreen.hideAsync();
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
 
     if (!session && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
+    } else if (session && !inTabsGroup) {
       router.replace('/(tabs)');
     }
   }, [session, isLoading, segments]);
