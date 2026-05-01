@@ -6,7 +6,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/colors';
 
 export default function TabLayout() {
-  const themeName = UnistylesRuntime.themeName;
+  const themeName = UnistylesRuntime.themeName ?? 'light';
 
   return (
     <Tabs
