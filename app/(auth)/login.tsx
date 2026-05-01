@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { validateEmail, validatePassword } from '@/utils/validation';
-import { sharedStyles, s } from '@/styles/shared';
+import { sharedStyles } from '@/styles/shared';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -47,19 +47,19 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={sharedStyles.fill}>
         <ScrollView
-          contentContainerStyle={s.content('center')}
+          contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <View style={s.mb(4)}>
+          <View style={styles.header}>
             <ThemedText type="title">Welcome Back</ThemedText>
-            <ThemedText style={[s.color('textSecondary'), s.mt(1)]}>
+            <ThemedText style={styles.subtitle}>
               Sign in to continue searching properties
             </ThemedText>
           </View>
 
           {errors.general && (
-            <View style={s.banner('error')}>
-              <ThemedText style={s.bannerText('error')}>{errors.general}</ThemedText>
+            <View style={styles.banner}>
+              <ThemedText style={styles.bannerText}>{errors.general}</ThemedText>
             </View>
           )}
 
@@ -98,8 +98,8 @@ export default function LoginScreen() {
             />
           </View>
 
-          <View style={[sharedStyles.row, { justifyContent: 'center' }, s.mt(4)]}>
-            <ThemedText style={s.color('textSecondary')}>
+          <View style={styles.footer}>
+            <ThemedText style={styles.subtitle}>
               Don't have an account?{' '}
             </ThemedText>
             <ThemedText
@@ -115,6 +115,28 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create(theme => ({
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    justifyContent: 'center',
+  },
+  header: {
+    marginBottom: theme.spacing(4),
+  },
+  subtitle: {
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing(1),
+  },
+  banner: {
+    backgroundColor: theme.colors.error + '15',
+    borderRadius: 12,
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+  },
+  bannerText: {
+    color: theme.colors.error,
+    fontSize: 14,
+  },
   forgotLink: {
     color: theme.colors.primary,
     fontSize: 14,
@@ -122,5 +144,10 @@ const styles = StyleSheet.create(theme => ({
     textAlign: 'right',
     marginBottom: theme.spacing(3),
     marginTop: -theme.spacing(1),
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: theme.spacing(4),
   },
 }));
