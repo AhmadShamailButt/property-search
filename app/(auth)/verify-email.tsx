@@ -1,14 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { StyleSheet } from 'react-native-unistyles';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
+import { Banner } from '@/components/ui/Banner';
+import { AuthScreen } from '@/components/ui/AuthScreen';
 import { useAuth } from '@/contexts/auth-context';
-import { sharedStyles } from '@/styles/shared';
+
+type FeedbackBanner = { tone: 'success' | 'error'; text: string };
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
@@ -17,24 +15,25 @@ export default function VerifyEmailScreen() {
 
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [message, setMessage] = useState<string | undefined>();
-  const [isError, setIsError] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackBanner | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  styles.useVariants({ tone: isError ? 'error' : 'success' });
+  const clearCooldownInterval = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
 
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+  useEffect(() => clearCooldownInterval, []);
 
   const startCooldown = () => {
+    clearCooldownInterval();
     setCooldown(60);
     intervalRef.current = setInterval(() => {
-      setCooldown(prev => {
+      setCooldown((prev) => {
         if (prev <= 1) {
-          if (intervalRef.current) clearInterval(intervalRef.current);
+          clearCooldownInterval();
           return 0;
         }
         return prev - 1;
@@ -44,133 +43,44 @@ export default function VerifyEmailScreen() {
 
   const handleResend = async () => {
     if (!email || cooldown > 0) return;
-
     setIsResending(true);
-    setMessage(undefined);
-    setIsError(false);
-
+    setFeedback(null);
     const { error } = await resendVerificationEmail(email);
-
     setIsResending(false);
-
     if (error) {
-      setMessage(error);
-      setIsError(true);
+      setFeedback({ tone: 'error', text: error });
       return;
     }
-
-    setMessage('Verification email sent! Check your inbox.');
-    setIsError(false);
+    setFeedback({ tone: 'success', text: 'Verification email sent! Check your inbox.' });
     startCooldown();
   };
 
   return (
-    <ThemedView style={sharedStyles.fill}>
-      <View style={styles.container}>
-        <View style={styles.iconWrap}>
-          <MaterialIcons name="mark-email-unread" size={80} style={styles.bigIcon} />
-        </View>
+    <AuthScreen
+      icon="mail"
+      title="Check Your Email"
+      subtitle={`We've sent a verification link to ${email ?? 'your email'}`}
+    >
+      <Banner tone="info">
+        Click the link in the email to verify your account. If you don't see it, check your spam folder.
+      </Banner>
 
-        <ThemedText type="title" style={styles.centerText}>Check Your Email</ThemedText>
+      {feedback && <Banner tone={feedback.tone}>{feedback.text}</Banner>}
 
-        <ThemedText style={styles.sentTo}>
-          We've sent a verification link to
-        </ThemedText>
-        <ThemedText type="defaultSemiBold" style={styles.emailText}>
-          {email}
-        </ThemedText>
-
-        <ThemedText style={styles.helperText}>
-          Click the link in the email to verify your account. If you don't see it, check your spam folder.
-        </ThemedText>
-
-        {message && (
-          <View style={styles.banner}>
-            <ThemedText style={styles.bannerText}>
-              {message}
-            </ThemedText>
-          </View>
-        )}
-
-        <View style={styles.actions}>
-          <Button
-            title={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Email'}
-            variant="outline"
-            onPress={handleResend}
-            isLoading={isResending}
-            disabled={cooldown > 0}
-          />
-
-          <Button
-            title="Back to Login"
-            variant="secondary"
-            onPress={() => router.replace('/(auth)/login')}
-          />
-        </View>
-      </View>
-    </ThemedView>
+      <Button
+        label={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Email'}
+        variant="outline"
+        size="lg"
+        onPress={handleResend}
+        isLoading={isResending}
+        disabled={cooldown > 0}
+      />
+      <Button
+        label="Back to Login"
+        variant="ghost"
+        size="lg"
+        onPress={() => router.replace('/(auth)/login')}
+      />
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create(theme => ({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: theme.spacing(3),
-  },
-  iconWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing(3),
-  },
-  bigIcon: {
-    color: theme.colors.primary,
-  },
-  centerText: {
-    textAlign: 'center',
-  },
-  sentTo: {
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    marginTop: theme.spacing(1),
-  },
-  emailText: {
-    textAlign: 'center',
-    marginTop: theme.spacing(0.5),
-  },
-  helperText: {
-    color: theme.colors.textMuted,
-    fontSize: 14,
-    marginTop: theme.spacing(2),
-    paddingHorizontal: theme.spacing(2),
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  banner: {
-    borderRadius: 12,
-    padding: theme.spacing(2),
-    marginTop: theme.spacing(2),
-    variants: {
-      tone: {
-        error: { backgroundColor: theme.colors.error + '15' },
-        success: { backgroundColor: theme.colors.success + '15' },
-      },
-    },
-  },
-  bannerText: {
-    fontSize: 14,
-    textAlign: 'center',
-    variants: {
-      tone: {
-        error: { color: theme.colors.error },
-        success: { color: theme.colors.success },
-      },
-    },
-  },
-  actions: {
-    width: '100%',
-    gap: theme.spacing(2),
-    marginTop: theme.spacing(4),
-  },
-}));

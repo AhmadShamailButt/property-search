@@ -39,42 +39,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[Auth] Initializing - fetching session...');
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('[Auth] getSession result:', { hasSession: !!session, userId: session?.user?.id, error: error?.message });
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setIsLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[Auth] onAuthStateChange:', { event, hasSession: !!session, userId: session?.user?.id, email: session?.user?.email });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Deep link handler for password reset
   useEffect(() => {
     const handleURL = async (event: { url: string }) => {
-      console.log('[Auth] Deep link received:', event.url);
       const params = extractHashParams(event.url);
-      console.log('[Auth] Extracted hash params:', Object.keys(params));
       if (params.access_token && params.refresh_token) {
-        console.log('[Auth] Setting session from deep link tokens...');
-        const { error } = await supabase.auth.setSession({
+        await supabase.auth.setSession({
           access_token: params.access_token,
           refresh_token: params.refresh_token,
         });
-        console.log('[Auth] setSession result:', { error: error?.message ?? 'success' });
-      } else {
-        console.log('[Auth] No tokens found in deep link');
       }
     };
 
     const subscription = Linking.addEventListener('url', handleURL);
     Linking.getInitialURL().then(url => {
-      console.log('[Auth] Initial URL:', url);
       if (url) handleURL({ url });
     });
 
@@ -82,53 +71,36 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('[Auth] signIn attempt:', { email });
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    console.log('[Auth] signIn result:', { success: !!data.session, error: error?.message });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error: error?.message ?? null };
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    console.log('[Auth] signUp attempt:', { email, fullName });
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } },
-    });
-    console.log('[Auth] signUp result:', {
-      success: !error,
-      userId: data.user?.id,
-      emailConfirmed: data.user?.email_confirmed_at,
-      identities: data.user?.identities?.length,
-      error: error?.message,
     });
     return { error: error?.message ?? null };
   };
 
   const signOut = async () => {
-    console.log('[Auth] signOut');
     await supabase.auth.signOut();
   };
 
   const resetPassword = async (email: string) => {
     const redirectTo = Linking.createURL('reset-password');
-    console.log('[Auth] resetPassword attempt:', { email, redirectTo });
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    console.log('[Auth] resetPassword result:', { error: error?.message ?? 'success' });
     return { error: error?.message ?? null };
   };
 
   const updatePassword = async (newPassword: string) => {
-    console.log('[Auth] updatePassword attempt');
     const { error } = await supabase.auth.updateUser({ password: newPassword });
-    console.log('[Auth] updatePassword result:', { error: error?.message ?? 'success' });
     return { error: error?.message ?? null };
   };
 
   const resendVerificationEmail = async (email: string) => {
-    console.log('[Auth] resendVerificationEmail attempt:', { email });
-    const { data, error } = await supabase.auth.resend({ type: 'signup', email });
-    console.log('[Auth] resendVerificationEmail result:', { data, error: error?.message ?? 'success' });
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
     return { error: error?.message ?? null };
   };
 

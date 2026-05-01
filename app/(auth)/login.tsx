@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+import { useRouter } from 'expo-router';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { Banner } from '@/components/ui/Banner';
+import { AuthScreen, AuthFooterLink } from '@/components/ui/AuthScreen';
 import { useAuth } from '@/contexts/auth-context';
 import { validateEmail, validatePassword } from '@/utils/validation';
-import { sharedStyles } from '@/styles/shared';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -25,129 +24,58 @@ export default function LoginScreen() {
     const passwordError = validatePassword(password);
 
     if (emailError || passwordError) {
-      setErrors({ email: emailError ?? undefined, password: passwordError ?? undefined });
+      setErrors({ email: emailError, password: passwordError });
       return;
     }
 
     setErrors({});
     setIsLoading(true);
-
     const { error } = await signIn(email, password);
-
-    if (error) {
-      setErrors({ general: error });
-    }
-
+    if (error) setErrors({ general: error });
     setIsLoading(false);
   };
 
   return (
-    <ThemedView style={sharedStyles.fill}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={sharedStyles.fill}>
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <ThemedText type="title">Welcome Back</ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Sign in to continue searching properties
-            </ThemedText>
-          </View>
+    <AuthScreen
+      icon="home"
+      title="Welcome Back"
+      subtitle="Enter your details to proceed"
+      footer={<AuthFooterLink text="Don't have an account?" linkLabel="Sign Up" href="/(auth)/signup" />}
+    >
+      {errors.general && <Banner tone="error">{errors.general}</Banner>}
 
-          {errors.general && (
-            <View style={styles.banner}>
-              <ThemedText style={styles.bannerText}>{errors.general}</ThemedText>
-            </View>
-          )}
+      <Input
+        label="Email"
+        icon="mail"
+        placeholder="you@example.com"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        error={errors.email}
+      />
+      <Input
+        label="Password"
+        icon="lock"
+        placeholder="••••••••"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+        error={errors.password}
+      />
 
-          <View>
-            <Input
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              icon="email"
-              error={errors.email}
-            />
+      <View style={styles.forgotRow}>
+        <Text style={styles.forgotText} onPress={() => router.push('/(auth)/forgot-password')}>
+          Forgot password?
+        </Text>
+      </View>
 
-            <Input
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              secureTextEntry
-              icon="lock"
-              error={errors.password}
-            />
-
-            <ThemedText
-              style={styles.forgotLink}
-              onPress={() => router.push('/(auth)/forgot-password')}>
-              Forgot Password?
-            </ThemedText>
-
-            <Button
-              title="Sign In"
-              onPress={handleSignIn}
-              isLoading={isLoading}
-            />
-          </View>
-
-          <View style={styles.footer}>
-            <ThemedText style={styles.subtitle}>
-              Don't have an account?{' '}
-            </ThemedText>
-            <ThemedText
-              type="link"
-              onPress={() => router.push('/(auth)/signup')}>
-              Sign Up
-            </ThemedText>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </ThemedView>
+      <Button label="Log In" variant="primary" size="lg" onPress={handleSignIn} isLoading={isLoading} />
+    </AuthScreen>
   );
 }
 
-const styles = StyleSheet.create(theme => ({
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    justifyContent: 'center',
-  },
-  header: {
-    marginBottom: theme.spacing(4),
-  },
-  subtitle: {
-    color: theme.colors.textSecondary,
-    marginTop: theme.spacing(1),
-  },
-  banner: {
-    backgroundColor: theme.colors.error + '15',
-    borderRadius: 12,
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  bannerText: {
-    color: theme.colors.error,
-    fontSize: 14,
-  },
-  forgotLink: {
-    color: theme.colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'right',
-    marginBottom: theme.spacing(3),
-    marginTop: -theme.spacing(1),
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: theme.spacing(4),
-  },
+const styles = StyleSheet.create((theme) => ({
+  forgotRow: { alignItems: 'flex-end' },
+  forgotText: { ...theme.typography.label, color: theme.colors.accent },
 }));
