@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { validateEmail } from '@/utils/validation';
-import { sharedStyles, s } from '@/styles/shared';
+import { sharedStyles } from '@/styles/shared';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -48,25 +49,25 @@ export default function ForgotPasswordScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={sharedStyles.fill}>
         <ScrollView
-          contentContainerStyle={s.content('top')}
+          contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <Pressable onPress={() => router.back()} style={[s.mb(2), { alignSelf: 'flex-start' }]}>
-            <MaterialIcons name="chevron-left" size={28} style={s.icon('text')} />
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <MaterialIcons name="chevron-left" size={28} style={styles.backIcon} />
           </Pressable>
 
-          <View style={[sharedStyles.center, s.mb(3)]}>
-            <MaterialIcons name="lock-reset" size={64} style={s.icon('primary')} />
+          <View style={styles.iconWrap}>
+            <MaterialIcons name="lock-reset" size={64} style={styles.bigIcon} />
           </View>
 
           {isSubmitted ? (
             <View>
               <ThemedText type="title">Check Your Email</ThemedText>
-              <ThemedText style={[s.color('textSecondary'), s.mt(1), { lineHeight: 22 }]}>
+              <ThemedText style={styles.bodyText}>
                 We've sent a password reset link to{' '}
                 <ThemedText type="defaultSemiBold">{email}</ThemedText>
               </ThemedText>
-              <ThemedText style={[s.color('textMuted'), s.fontSize(14), s.mt(2), s.mb(4), { lineHeight: 20 }]}>
+              <ThemedText style={styles.helperText}>
                 Click the link in the email to reset your password. If you don't see it, check your spam folder.
               </ThemedText>
               <Button
@@ -77,14 +78,14 @@ export default function ForgotPasswordScreen() {
             </View>
           ) : (
             <>
-              <View style={s.mb(4)}>
+              <View style={styles.header}>
                 <ThemedText type="title">Forgot Password?</ThemedText>
-                <ThemedText style={[s.color('textSecondary'), s.mt(1), { lineHeight: 22 }]}>
+                <ThemedText style={styles.bodyText}>
                   Enter your email address and we'll send you a link to reset your password
                 </ThemedText>
               </View>
 
-              <View style={s.gap(1)}>
+              <View style={styles.formGap}>
                 <Input
                   label="Email"
                   value={email}
@@ -103,8 +104,8 @@ export default function ForgotPasswordScreen() {
                 />
               </View>
 
-              <View style={[sharedStyles.row, { justifyContent: 'center' }, s.mt(4)]}>
-                <ThemedText style={s.color('textSecondary')}>
+              <View style={styles.footer}>
+                <ThemedText style={styles.subtitle}>
                   Remember your password?{' '}
                 </ThemedText>
                 <ThemedText type="link" onPress={() => router.back()}>
@@ -118,3 +119,52 @@ export default function ForgotPasswordScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create(theme => ({
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    paddingTop: theme.spacing(8),
+  },
+  backButton: {
+    marginBottom: theme.spacing(2),
+    alignSelf: 'flex-start',
+  },
+  backIcon: {
+    color: theme.colors.text,
+  },
+  iconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing(3),
+  },
+  bigIcon: {
+    color: theme.colors.primary,
+  },
+  header: {
+    marginBottom: theme.spacing(4),
+  },
+  subtitle: {
+    color: theme.colors.textSecondary,
+  },
+  bodyText: {
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing(1),
+    lineHeight: 22,
+  },
+  helperText: {
+    color: theme.colors.textMuted,
+    fontSize: 14,
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(4),
+    lineHeight: 20,
+  },
+  formGap: {
+    gap: theme.spacing(1),
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: theme.spacing(4),
+  },
+}));

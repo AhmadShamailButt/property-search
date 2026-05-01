@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -14,7 +15,7 @@ import {
   validatePasswordMatch,
   validateFullName,
 } from '@/utils/validation';
-import { sharedStyles, s } from '@/styles/shared';
+import { sharedStyles } from '@/styles/shared';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -64,23 +65,23 @@ export default function SignupScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={sharedStyles.fill}>
         <ScrollView
-          contentContainerStyle={s.content('top')}
+          contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <Pressable onPress={() => router.back()} style={[s.mb(2), { alignSelf: 'flex-start' }]}>
-            <MaterialIcons name="chevron-left" size={28} style={s.icon('text')} />
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <MaterialIcons name="chevron-left" size={28} style={styles.backIcon} />
           </Pressable>
 
-          <View style={s.mb(4)}>
+          <View style={styles.header}>
             <ThemedText type="title">Create Account</ThemedText>
-            <ThemedText style={[s.color('textSecondary'), s.mt(1)]}>
+            <ThemedText style={styles.subtitle}>
               Join us to find your dream property
             </ThemedText>
           </View>
 
           {errors.general && (
-            <View style={s.banner('error')}>
-              <ThemedText style={s.bannerText('error')}>{errors.general}</ThemedText>
+            <View style={styles.banner}>
+              <ThemedText style={styles.bannerText}>{errors.general}</ThemedText>
             </View>
           )}
 
@@ -133,8 +134,8 @@ export default function SignupScreen() {
             />
           </View>
 
-          <View style={[sharedStyles.row, { justifyContent: 'center' }, s.mt(4)]}>
-            <ThemedText style={s.color('textSecondary')}>
+          <View style={styles.footer}>
+            <ThemedText style={styles.subtitle}>
               Already have an account?{' '}
             </ThemedText>
             <ThemedText type="link" onPress={() => router.back()}>
@@ -146,3 +147,40 @@ export default function SignupScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create(theme => ({
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+    paddingTop: theme.spacing(8),
+  },
+  backButton: {
+    marginBottom: theme.spacing(2),
+    alignSelf: 'flex-start',
+  },
+  backIcon: {
+    color: theme.colors.text,
+  },
+  header: {
+    marginBottom: theme.spacing(4),
+  },
+  subtitle: {
+    color: theme.colors.textSecondary,
+    marginTop: theme.spacing(1),
+  },
+  banner: {
+    backgroundColor: theme.colors.error + '15',
+    borderRadius: 12,
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+  },
+  bannerText: {
+    color: theme.colors.error,
+    fontSize: 14,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: theme.spacing(4),
+  },
+}));

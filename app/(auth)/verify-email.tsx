@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
-import { sharedStyles, s } from '@/styles/shared';
+import { sharedStyles } from '@/styles/shared';
 
 export default function VerifyEmailScreen() {
   const router = useRouter();
@@ -19,6 +20,8 @@ export default function VerifyEmailScreen() {
   const [message, setMessage] = useState<string | undefined>();
   const [isError, setIsError] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  styles.useVariants({ tone: isError ? 'error' : 'success' });
 
   useEffect(() => {
     return () => {
@@ -63,33 +66,33 @@ export default function VerifyEmailScreen() {
 
   return (
     <ThemedView style={sharedStyles.fill}>
-      <View style={[sharedStyles.fill, sharedStyles.center, s.p(3)]}>
-        <View style={[sharedStyles.center, s.mb(3)]}>
-          <MaterialIcons name="mark-email-unread" size={80} style={s.icon('primary')} />
+      <View style={styles.container}>
+        <View style={styles.iconWrap}>
+          <MaterialIcons name="mark-email-unread" size={80} style={styles.bigIcon} />
         </View>
 
-        <ThemedText type="title" style={{ textAlign: 'center' }}>Check Your Email</ThemedText>
+        <ThemedText type="title" style={styles.centerText}>Check Your Email</ThemedText>
 
-        <ThemedText style={[s.color('textSecondary'), { textAlign: 'center' }, s.mt(1)]}>
+        <ThemedText style={styles.sentTo}>
           We've sent a verification link to
         </ThemedText>
-        <ThemedText type="defaultSemiBold" style={[{ textAlign: 'center' }, s.mt(0.5)]}>
+        <ThemedText type="defaultSemiBold" style={styles.emailText}>
           {email}
         </ThemedText>
 
-        <ThemedText style={[s.color('textMuted'), s.fontSize(14), s.mt(2), s.px(2), { lineHeight: 20, textAlign: 'center' }]}>
+        <ThemedText style={styles.helperText}>
           Click the link in the email to verify your account. If you don't see it, check your spam folder.
         </ThemedText>
 
         {message && (
-          <View style={[s.banner(isError ? 'error' : 'success'), s.mt(2)]}>
-            <ThemedText style={[s.bannerText(isError ? 'error' : 'success'), { textAlign: 'center' }]}>
+          <View style={styles.banner}>
+            <ThemedText style={styles.bannerText}>
               {message}
             </ThemedText>
           </View>
         )}
 
-        <View style={[{ width: '100%' }, s.gap(2), s.mt(4)]}>
+        <View style={styles.actions}>
           <Button
             title={cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend Email'}
             variant="outline"
@@ -108,3 +111,66 @@ export default function VerifyEmailScreen() {
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create(theme => ({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing(3),
+  },
+  iconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing(3),
+  },
+  bigIcon: {
+    color: theme.colors.primary,
+  },
+  centerText: {
+    textAlign: 'center',
+  },
+  sentTo: {
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginTop: theme.spacing(1),
+  },
+  emailText: {
+    textAlign: 'center',
+    marginTop: theme.spacing(0.5),
+  },
+  helperText: {
+    color: theme.colors.textMuted,
+    fontSize: 14,
+    marginTop: theme.spacing(2),
+    paddingHorizontal: theme.spacing(2),
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  banner: {
+    borderRadius: 12,
+    padding: theme.spacing(2),
+    marginTop: theme.spacing(2),
+    variants: {
+      tone: {
+        error: { backgroundColor: theme.colors.error + '15' },
+        success: { backgroundColor: theme.colors.success + '15' },
+      },
+    },
+  },
+  bannerText: {
+    fontSize: 14,
+    textAlign: 'center',
+    variants: {
+      tone: {
+        error: { color: theme.colors.error },
+        success: { color: theme.colors.success },
+      },
+    },
+  },
+  actions: {
+    width: '100%',
+    gap: theme.spacing(2),
+    marginTop: theme.spacing(4),
+  },
+}));
