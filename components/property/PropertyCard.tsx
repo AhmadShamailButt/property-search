@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Pressable } from 'react-native';
-import { Image } from 'expo-image';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Pressable, Image } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
@@ -33,11 +32,19 @@ interface PropertyCardProps {
   isFavorite?: boolean;
 }
 
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
+
 export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardProps) => {
   const { theme } = useUnistyles();
   const heartScale = useSharedValue(1);
   const cardScale = useSharedValue(1);
   const shine = useSharedValue(0);
+  const [imgUri, setImgUri] = useState(property.image || FALLBACK_IMAGE);
+
+  useEffect(() => {
+    setImgUri(property.image || FALLBACK_IMAGE);
+  }, [property.image]);
 
   useEffect(() => {
     if (property.featured) {
@@ -69,7 +76,12 @@ export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardP
       >
         <Animated.View style={[styles.card, cardStyle]}>
           <View style={styles.imageContainer}>
-            <Image source={{ uri: property.image }} style={styles.image} contentFit="cover" transition={200} />
+            <Image
+              source={{ uri: imgUri }}
+              style={styles.image}
+              resizeMode="cover"
+              onError={() => { if (imgUri !== FALLBACK_IMAGE) setImgUri(FALLBACK_IMAGE); }}
+            />
             <View style={styles.imageOverlay} pointerEvents="none" />
 
             <TouchableOpacity style={styles.favBtn} onPress={handleFavorite} hitSlop={10}>
