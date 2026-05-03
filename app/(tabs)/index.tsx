@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
@@ -20,7 +20,6 @@ const HORIZONTAL_PADDING = 20;
 
 export default function HomeScreen() {
   const { theme } = useUnistyles();
-  const { width: winWidth } = useWindowDimensions();
   const router = useRouter();
   const { location } = useLocation();
   const [activeTab, setActiveTab] = useState<string>(CATEGORY_LABELS[0]);
@@ -42,13 +41,12 @@ export default function HomeScreen() {
     setTimeout(() => setRefreshing(false), 600);
   }, [refresh]);
 
-  const featuredCardWidth = Math.min(winWidth, 700) - HORIZONTAL_PADDING * 2 - 60;
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.tint} />
         }
@@ -115,27 +113,15 @@ export default function HomeScreen() {
               <Text style={styles.sectionCount}>{featured.length} properties</Text>
             </View>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToInterval={featuredCardWidth + 16}
-              decelerationRate="fast"
-              contentContainerStyle={styles.featuredRail}
-            >
-              {featured.map((p, i) => (
-                <Animated.View
-                  key={p.id}
-                  entering={FadeInRight.delay(300 + i * 80)}
-                  style={{ width: featuredCardWidth, marginRight: 16 }}
-                >
-                  <PropertyCard
-                    property={p}
-                    isFavorite={isFavorite(p.id)}
-                    onFavorite={() => toggle(p.id)}
-                  />
-                </Animated.View>
-              ))}
-            </ScrollView>
+            {featured.map((p, i) => (
+              <Animated.View key={p.id} entering={FadeInRight.delay(300 + i * 80)}>
+                <PropertyCard
+                  property={p}
+                  isFavorite={isFavorite(p.id)}
+                  onFavorite={() => toggle(p.id)}
+                />
+              </Animated.View>
+            ))}
           </Animated.View>
         )}
 
@@ -165,7 +151,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <View style={{ height: 110 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,7 +174,11 @@ const EmptyResults = ({ theme, hasLocation, category }: { theme: any; hasLocatio
 
 const styles = StyleSheet.create((theme) => ({
   container: { flex: 1, backgroundColor: theme.colors.background },
-  scrollContent: { paddingHorizontal: HORIZONTAL_PADDING, paddingTop: theme.spacing(2) },
+  scrollContent: {
+    paddingHorizontal: HORIZONTAL_PADDING,
+    paddingTop: theme.spacing(2),
+    paddingBottom: 180,
+  },
 
   header: {
     flexDirection: 'row',
@@ -290,9 +279,6 @@ const styles = StyleSheet.create((theme) => ({
 
   featuredSection: {
     marginBottom: theme.spacing(1),
-  },
-  featuredRail: {
-    paddingRight: HORIZONTAL_PADDING,
   },
 
   grid: {
