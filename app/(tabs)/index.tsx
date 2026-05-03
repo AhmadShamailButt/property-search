@@ -13,8 +13,9 @@ import { BannerCarousel } from '@/components/property/BannerCarousel';
 import { PropertyCardSkeleton } from '@/components/property/PropertyCardSkeleton';
 import { useLocation } from '@/contexts/location-context';
 import { useProperties, useBanners, useFavorites } from '@/hooks/useHomeData';
+import { CATEGORIES } from '@/utils/filters';
 
-const CATEGORIES = ['All', 'Villa', 'Apartment', 'House'];
+const CATEGORY_LABELS = CATEGORIES.map((c) => c.label);
 const HORIZONTAL_PADDING = 20;
 
 export default function HomeScreen() {
@@ -22,7 +23,7 @@ export default function HomeScreen() {
   const { width: winWidth } = useWindowDimensions();
   const router = useRouter();
   const { location } = useLocation();
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState<string>(CATEGORY_LABELS[0]);
 
   const { data: properties, isLoading: propsLoading, refresh } = useProperties({
     city: location?.city,
@@ -104,7 +105,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInRight.delay(240)} style={{ marginBottom: theme.spacing(2.5) }}>
-          <CategoryTabs categories={CATEGORIES} activeCategory={activeTab} onSelect={setActiveTab} />
+          <CategoryTabs categories={CATEGORY_LABELS} activeCategory={activeTab} onSelect={setActiveTab} />
         </Animated.View>
 
         {featured.length > 0 && (

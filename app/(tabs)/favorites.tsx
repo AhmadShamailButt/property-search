@@ -30,7 +30,7 @@ export default function FavoritesScreen() {
               <View style={styles.cardImageContainer}>
                 <Image source={{ uri: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }} style={styles.cardImage} />
                 <View style={styles.favBtnActive}>
-                  <Feather name="heart" fill={'#ffffff'} size={18} color={'#ffffff'} />
+                  <Feather name="heart" fill={theme.colors.onImage} size={18} color={theme.colors.onImage} />
                 </View>
               </View>
               <View style={styles.cardContent}>
