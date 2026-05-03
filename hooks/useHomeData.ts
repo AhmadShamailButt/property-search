@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/utils/supabase';
-import { useAuth } from '@/contexts/auth-context';
 import type { Property } from '@/components/property/PropertyCard';
 import { toProperty, getCategoryName, type PropertyRow } from '@/utils/propertyHelpers';
+import { useFavorites } from '@/contexts/favorites-context';
 
 export type HomeBanner = {
   id: string;
@@ -87,62 +87,11 @@ export function useBanners() {
   return { data, isLoading };
 }
 
-export function useFavorites() {
-  const { user } = useAuth();
-  const [ids, setIds] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!user) {
-      setIds(new Set());
-      setIsLoading(false);
-      return;
-    }
-    (async () => {
-      const { data } = await supabase
-        .from('favorites')
-        .select('property_id')
-        .eq('user_id', user.id);
-      if (cancelled) return;
-      setIds(new Set((data ?? []).map((r) => r.property_id as string)));
-      setIsLoading(false);
-    })();
-    return () => { cancelled = true; };
-  }, [user]);
-
-  const isFavorite = useCallback((id: string | number) => ids.has(String(id)), [ids]);
-
-  const toggle = useCallback(async (id: string | number) => {
-    if (!user) return;
-    const key = String(id);
-    const wasFav = ids.has(key);
-    setIds((prev) => {
-      const next = new Set(prev);
-      if (wasFav) next.delete(key); else next.add(key);
-      return next;
-    });
-    if (wasFav) {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('property_id', key);
-      if (error) {
-        setIds((prev) => { const next = new Set(prev); next.add(key); return next; });
-      }
-    } else {
-      const { error } = await supabase
-        .from('favorites')
-        .insert({ user_id: user.id, property_id: key });
-      if (error) {
-        setIds((prev) => { const next = new Set(prev); next.delete(key); return next; });
-      }
-    }
-  }, [ids, user]);
-
-  return useMemo(() => ({ ids, isFavorite, toggle, isLoading }), [ids, isFavorite, toggle, isLoading]);
-}
+// `useFavorites` lives in the FavoritesContext so state is shared across
+// every screen that reads it (toggling on Home immediately updates the
+// Favorites tab, the search list, etc.). Re-exported here for backward
+// compatibility with existing import paths.
+export { useFavorites } from '@/contexts/favorites-context';
 
 /**
  * Loads the full Property records for every property the current user has favorited.
