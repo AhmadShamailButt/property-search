@@ -30,7 +30,7 @@ export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardP
           <Image source={{ uri: property.image }} style={styles.image} />
           
           <TouchableOpacity style={styles.favBtn} onPress={onFavorite}>
-            <Feather name="heart" size={18} color={isFavorite ? theme.colors.accent : '#fff'} fill={isFavorite ? theme.colors.accent : 'transparent'} />
+            <Feather name="heart" size={18} color={isFavorite ? theme.colors.accent : theme.colors.onImage} fill={isFavorite ? theme.colors.accent : 'transparent'} />
           </TouchableOpacity>
           
           {property.featured && (
@@ -78,7 +78,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 36,
     height: 36,
     borderRadius: theme.radii.round,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: theme.colors.scrim,
     justifyContent: 'center',
     alignItems: 'center',
   },
