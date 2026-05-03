@@ -38,7 +38,7 @@ export default function SearchScreen() {
           <View style={styles.cardImageContainer}>
             <Image source={{ uri: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3' }} style={styles.cardImage} />
             <View style={styles.favBtn}>
-              <Feather name="heart" size={18} color="#fff" />
+              <Feather name="heart" size={18} color={theme.colors.onImage} />
             </View>
           </View>
           <View style={styles.cardContent}>
@@ -107,13 +107,13 @@ const styles = StyleSheet.create((theme) => ({
   card: { backgroundColor: theme.colors.card, borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border },
   cardImageContainer: { height: 200, borderTopLeftRadius: theme.radii.lg, borderTopRightRadius: theme.radii.lg, overflow: 'hidden' },
   cardImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-  favBtn: { position: 'absolute', top: 10, right: 10, width: 36, height: 36, borderRadius: theme.radii.round, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
+  favBtn: { position: 'absolute', top: theme.spacing(1.5), right: theme.spacing(1.5), width: 36, height: 36, borderRadius: theme.radii.round, backgroundColor: theme.colors.scrim, justifyContent: 'center', alignItems: 'center' },
   cardContent: { padding: theme.spacing(2) },
   cardPrice: { ...theme.typography.h2, color: theme.colors.tint },
   cardTitle: { ...theme.typography.body, color: theme.colors.text },
   cardAddress: { ...theme.typography.caption, color: theme.colors.textSecondary },
   // Bottom Sheet
-  bottomSheetOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', zIndex: 100 },
+  bottomSheetOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: theme.colors.backdrop, justifyContent: 'flex-end', zIndex: 100 },
   bottomSheet: { backgroundColor: theme.colors.background, borderTopLeftRadius: theme.radii.xl, borderTopRightRadius: theme.radii.xl, height: '80%' },
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: theme.spacing(3), borderBottomWidth: 1, borderBottomColor: theme.colors.border },
   sheetTitle: { ...theme.typography.h2, color: theme.colors.text },
