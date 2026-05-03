@@ -242,24 +242,36 @@ export function PropertyForm({ mode, propertyId, initialValues, initialImages, t
     }
 
     setIsSaving(false);
-    router.replace('/admin/listings');
+    if (mode === 'edit' && savedId) {
+      router.replace(`/property/${savedId}`);
+    } else {
+      router.replace('/admin/listings');
+    }
   }, [values, images, mode, propertyId, user, initialImages]);
+
+  const goBack = useCallback(() => {
+    if (mode === 'edit' && propertyId) {
+      router.replace(`/property/${propertyId}`);
+      return;
+    }
+    if (router.canGoBack()) router.back();
+    else router.replace('/admin/listings');
+  }, [mode, propertyId]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
           <Feather name="arrow-left" size={20} color={theme.colors.text} />
         </TouchableOpacity>
         <View style={styles.topBarTextGroup}>
-          <Text style={styles.topBarEyebrow}>{mode === 'create' ? 'Create' : 'Edit'}</Text>
           <Text style={styles.topBarTitle}>{title}</Text>
         </View>
         <View style={styles.topBarSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Section title="Basics" icon="file-text" subtitle="Tell buyers what makes this place special">
+        <Section title="Basics" icon="file-text">
           <Input label="Title" value={values.title} onChangeText={(v) => set('title', v)} />
           <Input label="Description" value={values.description} onChangeText={(v) => set('description', v)} multiline numberOfLines={4} />
           {categoryOptions.length > 0 && (
@@ -275,7 +287,7 @@ export function PropertyForm({ mode, propertyId, initialValues, initialImages, t
           <Input label="Building type (e.g. Detached, Townhouse)" value={values.building_type} onChangeText={(v) => set('building_type', v)} />
         </Section>
 
-        <Section title="Location" icon="map-pin" subtitle="Where is the property located?">
+        <Section title="Location" icon="map-pin">
           <Input label="Address" value={values.address} onChangeText={(v) => set('address', v)} />
           <View style={styles.row2}>
             <View style={styles.flex1}><Input label="City" value={values.city} onChangeText={(v) => set('city', v)} /></View>
@@ -317,7 +329,7 @@ export function PropertyForm({ mode, propertyId, initialValues, initialImages, t
           <ToggleRow label="Active" description="Visible to searchers when on" value={values.is_active} onChange={(v) => set('is_active', v)} />
         </Section>
 
-        <Section title="Images" icon="image" subtitle="The hero photo appears first in search results">
+        <Section title="Images" icon="image">
           {images.length === 0 ? (
             <View style={styles.emptyImages}>
               <View style={styles.emptyIcon}>
