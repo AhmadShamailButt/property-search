@@ -77,7 +77,7 @@ export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardP
                 <Ionicons
                   name={isFavorite ? 'heart' : 'heart-outline'}
                   size={18}
-                  color={isFavorite ? theme.colors.accent : '#fff'}
+                  color={isFavorite ? theme.colors.accent : theme.colors.onImage}
                 />
               </Animated.View>
             </TouchableOpacity>
@@ -152,7 +152,7 @@ const styles = StyleSheet.create((theme) => ({
     right: 0,
     bottom: 0,
     height: '55%',
-    backgroundColor: 'rgba(0,0,0,0.28)',
+    backgroundColor: theme.colors.scrim,
   },
   favBtn: {
     position: 'absolute',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create((theme) => ({
     width: 36,
     height: 36,
     borderRadius: theme.radii.round,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    backgroundColor: theme.colors.scrimStrong,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
