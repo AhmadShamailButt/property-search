@@ -2,48 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/utils/supabase';
 import { useAuth } from '@/contexts/auth-context';
 import type { Property } from '@/components/property/PropertyCard';
-
-const PLACEHOLDER_IMAGE =
-  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80';
-
-const formatPrice = (n: number | null | undefined) =>
-  typeof n === 'number'
-    ? `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
-    : '—';
-
-type DbProperty = {
-  id: string;
-  title: string;
-  address: string;
-  city: string | null;
-  state: string | null;
-  price: number;
-  bedrooms: number | null;
-  bathrooms: number | null;
-  is_featured: boolean;
-  categories: { name: string } | { name: string }[] | null;
-  property_images: { image_url: string; is_hero: boolean | null; sort_order: number | null }[] | null;
-};
-
-const toProperty = (row: DbProperty): Property => {
-  const cat = Array.isArray(row.categories) ? row.categories[0]?.name : row.categories?.name;
-  const imgs = row.property_images ?? [];
-  const hero =
-    imgs.find((i) => i.is_hero) ??
-    [...imgs].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))[0];
-  return {
-    id: row.id,
-    title: row.title,
-    address: row.address,
-    price: formatPrice(row.price),
-    type: cat ?? 'Property',
-    featured: !!row.is_featured,
-    image: hero?.image_url || PLACEHOLDER_IMAGE,
-    city: row.city ?? undefined,
-    bedrooms: row.bedrooms ?? undefined,
-    bathrooms: row.bathrooms ?? undefined,
-  };
-};
+import { toProperty, getCategoryName, type PropertyRow } from '@/utils/propertyHelpers';
 
 export type HomeBanner = {
   id: string;
@@ -88,11 +47,10 @@ export function useProperties(opts: { city?: string; category?: string } = {}) {
         setError(err.message);
         setData([]);
       } else {
-        const mapped = (rows as unknown as DbProperty[])
+        const mapped = (rows as unknown as PropertyRow[])
           .filter((r) => {
             if (!category || category === 'All') return true;
-            const name = Array.isArray(r.categories) ? r.categories[0]?.name : r.categories?.name;
-            return name === category;
+            return getCategoryName(r.categories) === category;
           })
           .map(toProperty);
         setData(mapped);

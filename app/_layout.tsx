@@ -55,6 +55,8 @@ function RootNavigator() {
         <Stack.Screen name="search" />
         <Stack.Screen name="property/[id]" />
         <Stack.Screen name="property/[id]/ai-chat" />
+        <Stack.Screen name="profile/[id]" />
+        <Stack.Screen name="conversation/[id]" />
         <Stack.Screen name="location-picker" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style="auto" />
