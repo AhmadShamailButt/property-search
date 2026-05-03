@@ -152,6 +152,7 @@ export default function AdminListingsScreen() {
               key={r.id}
               row={r}
               isPending={pendingId === r.id}
+              onOpen={() => router.push(`/property/${r.id}`)}
               onEdit={() => router.push(`/admin/listings/${r.id}/edit`)}
               onToggleFeatured={() => updateRow(r, { is_featured: !r.is_featured })}
               onToggleActive={() => updateRow(r, { is_active: !r.is_active })}
@@ -167,20 +168,21 @@ export default function AdminListingsScreen() {
 interface ListingRowProps {
   row: AdminListingRow;
   isPending: boolean;
+  onOpen: () => void;
   onEdit: () => void;
   onToggleFeatured: () => void;
   onToggleActive: () => void;
   onDelete: () => void;
 }
 
-const ListingRow = ({ row, isPending, onEdit, onToggleFeatured, onToggleActive, onDelete }: ListingRowProps) => {
+const ListingRow = ({ row, isPending, onOpen, onEdit, onToggleFeatured, onToggleActive, onDelete }: ListingRowProps) => {
   const { theme } = useUnistyles();
   const image = getHeroImage(row.property_images);
   const cat = getCategoryName(row.categories);
 
   return (
     <View style={styles.row}>
-      <TouchableOpacity onPress={onEdit} activeOpacity={0.85} style={styles.rowMain}>
+      <TouchableOpacity onPress={onOpen} activeOpacity={0.85} style={styles.rowMain}>
         {image ? (
           <Image source={image} style={styles.thumb} contentFit="cover" />
         ) : (
