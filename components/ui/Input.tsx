@@ -46,11 +46,11 @@ const styles = StyleSheet.create((theme) => ({
         true: {
           alignItems: 'flex-start',
           paddingVertical: theme.spacing(1.5),
-          minHeight: 120,
+          minHeight: theme.spacing(15),
         },
         false: {
           alignItems: 'center',
-          height: 56,
+          height: theme.spacing(7),
         },
       },
     },
