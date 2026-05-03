@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { ChipGroup } from '@/components/ui/ChipGroup';
 import { RangeSlider } from '@/components/ui/RangeSlider';
 import { Section } from '@/components/ui/Section';
+import { SUPPORTED_CITIES } from '@/contexts/location-context';
 import {
   AREA_BOUNDS,
   CATEGORIES,
@@ -20,6 +21,11 @@ import {
   formatArea,
   formatPrice,
 } from '@/utils/filters';
+
+const CITY_OPTIONS: { value: string | null; label: string }[] = [
+  { value: null, label: 'Any' },
+  ...SUPPORTED_CITIES.map((c) => ({ value: c.city, label: c.city })),
+];
 
 interface FilterSheetProps {
   visible: boolean;
@@ -66,6 +72,14 @@ export const FilterSheet = ({ visible, onClose, filters, onApply }: FilterSheetP
           options={CATEGORIES}
           value={draft.category}
           onChange={(v) => update('category', v)}
+        />
+      </Section>
+
+      <Section label="Location">
+        <ChipGroup<string | null>
+          options={CITY_OPTIONS}
+          value={draft.city}
+          onChange={(v) => update('city', v)}
         />
       </Section>
 

@@ -34,6 +34,7 @@ export default function AdminLayout() {
         name="banners"
         options={{ title: 'Banners', tabBarIcon: ({ color }) => <Feather name="image" size={24} color={color} /> }}
       />
+      <Tabs.Screen name="analytics" options={{ href: null }} />
     </Tabs>
   );
 }

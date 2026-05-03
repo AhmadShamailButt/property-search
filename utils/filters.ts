@@ -37,6 +37,7 @@ export type FiltersState = {
   bedrooms: number | null;
   bathrooms: number | null;
   sort: SortKey;
+  city: string | null;
 };
 
 export const DEFAULT_FILTERS: FiltersState = {
@@ -48,6 +49,7 @@ export const DEFAULT_FILTERS: FiltersState = {
   bedrooms: null,
   bathrooms: null,
   sort: 'newest',
+  city: null,
 };
 
 export const formatPrice = (value: number): string => {
@@ -81,6 +83,7 @@ export const parseFilters = (params: Record<string, string | string[] | undefine
   };
   const cat = get('category');
   const sort = get('sort');
+  const city = get('city');
   return {
     category: isCategory(cat) ? cat : DEFAULT_FILTERS.category,
     priceMin: num(get('priceMin'), DEFAULT_FILTERS.priceMin),
@@ -90,6 +93,7 @@ export const parseFilters = (params: Record<string, string | string[] | undefine
     bedrooms: roomNum(get('bedrooms')),
     bathrooms: roomNum(get('bathrooms')),
     sort: isSort(sort) ? sort : DEFAULT_FILTERS.sort,
+    city: typeof city === 'string' && city.length > 0 ? city : null,
   };
 };
 
@@ -103,6 +107,7 @@ export const serializeFilters = (filters: FiltersState): Record<string, string> 
   if (filters.bedrooms !== null) out.bedrooms = String(filters.bedrooms);
   if (filters.bathrooms !== null) out.bathrooms = String(filters.bathrooms);
   if (filters.sort !== DEFAULT_FILTERS.sort) out.sort = filters.sort;
+  if (filters.city) out.city = filters.city;
   return out;
 };
 
@@ -112,6 +117,9 @@ export const activeFilterChips = (filters: FiltersState): ActiveFilterChip[] => 
   const chips: ActiveFilterChip[] = [];
   if (filters.category !== DEFAULT_FILTERS.category) {
     chips.push({ key: 'category', label: filters.category });
+  }
+  if (filters.city) {
+    chips.push({ key: 'city', label: filters.city });
   }
   if (filters.priceMin !== DEFAULT_FILTERS.priceMin || filters.priceMax !== DEFAULT_FILTERS.priceMax) {
     chips.push({ key: 'price', label: `${formatPrice(filters.priceMin)} – ${formatPrice(filters.priceMax)}` });
@@ -127,6 +135,7 @@ export const activeFilterChips = (filters: FiltersState): ActiveFilterChip[] => 
 export const removeFilterChip = (filters: FiltersState, chip: ActiveFilterChip): FiltersState => {
   switch (chip.key) {
     case 'category': return { ...filters, category: DEFAULT_FILTERS.category };
+    case 'city': return { ...filters, city: null };
     case 'price': return { ...filters, priceMin: DEFAULT_FILTERS.priceMin, priceMax: DEFAULT_FILTERS.priceMax };
     case 'area': return { ...filters, areaMin: DEFAULT_FILTERS.areaMin, areaMax: DEFAULT_FILTERS.areaMax };
     case 'bedrooms': return { ...filters, bedrooms: null };
