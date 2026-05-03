@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { supabase } from '@/utils/supabase';
 import { PropertyCard } from '@/components/property/PropertyCard';
+import { useFavorites } from '@/hooks/useHomeData';
 import { toProperty, type PropertyRow } from '@/utils/propertyHelpers';
 
 type ProfileRow = {
@@ -28,6 +29,7 @@ const formatRoleLabel = (role: ProfileRow['role']) => {
 export default function PublicProfileScreen() {
   const { theme } = useUnistyles();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { isFavorite, toggle } = useFavorites();
 
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -140,7 +142,12 @@ export default function PublicProfileScreen() {
         ) : (
           <View style={styles.listingsList}>
             {listings.map((p) => (
-              <PropertyCard key={p.id} property={p} />
+              <PropertyCard
+                key={p.id}
+                property={p}
+                isFavorite={isFavorite(p.id)}
+                onFavorite={() => toggle(p.id)}
+              />
             ))}
           </View>
         )}

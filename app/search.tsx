@@ -9,6 +9,7 @@ import { FilterSheet } from '@/components/property/FilterSheet';
 import { PropertyCard } from '@/components/property/PropertyCard';
 import { Chip } from '@/components/ui/Chip';
 import { useSearch } from '@/hooks/useSearch';
+import { useFavorites } from '@/hooks/useHomeData';
 import { activeFilterChips, removeFilterChip } from '@/utils/filters';
 
 export default function SearchScreen() {
@@ -16,6 +17,7 @@ export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const { filters, setFilters, results, count, isLoading, error } = useSearch(query);
+  const { isFavorite, toggle } = useFavorites();
 
   const chips = activeFilterChips(filters);
 
@@ -66,7 +68,14 @@ export default function SearchScreen() {
         ) : results.length === 0 ? (
           <Text style={styles.empty}>No properties match your filters.</Text>
         ) : (
-          results.map((p) => <PropertyCard key={p.id} property={p} />)
+          results.map((p) => (
+            <PropertyCard
+              key={p.id}
+              property={p}
+              isFavorite={isFavorite(p.id)}
+              onFavorite={() => toggle(p.id)}
+            />
+          ))
         )}
       </ScrollView>
 
