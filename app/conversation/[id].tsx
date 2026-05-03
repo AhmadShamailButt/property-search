@@ -169,7 +169,7 @@ export default function ConversationScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.center]} edges={['top']}>
         <Text style={styles.errorText}>{error ?? 'Conversation unavailable.'}</Text>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.errorBack}>
           <Text style={styles.errorLink}>Go back</Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -300,6 +300,7 @@ const styles = StyleSheet.create((theme) => ({
   flex: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
   errorText: { ...theme.typography.body, color: theme.colors.textSecondary },
+  errorBack: { marginTop: theme.spacing(2) },
   errorLink: { ...theme.typography.label, color: theme.colors.tint, fontWeight: '600' },
 
   header: {
@@ -332,7 +333,7 @@ const styles = StyleSheet.create((theme) => ({
   headerAvatar: { width: 36, height: 36, borderRadius: theme.radii.round },
   headerAvatarPlaceholder: { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border },
   headerName: { ...theme.typography.label, color: theme.colors.text, fontWeight: '700' },
-  headerSubtitle: { ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 1 },
+  headerSubtitle: { ...theme.typography.caption, color: theme.colors.textSecondary },
 
   list: { flex: 1 },
   messageList: {

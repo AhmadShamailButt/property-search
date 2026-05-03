@@ -131,17 +131,21 @@ export default function PropertyDetailScreen() {
   if (property.living_area_sqft != null) keyStats.push({ icon: 'maximize-2', label: 'Living Area', value: formatArea(property.living_area_sqft) });
   if (property.year_built != null) keyStats.push({ icon: 'calendar', label: 'Year Built', value: String(property.year_built) });
 
-  const features: { label: string; value: string }[] = [];
-  if (property.building_type) features.push({ label: 'Building Type', value: property.building_type });
-  if (category) features.push({ label: 'Category', value: category });
-  if (property.year_built != null) features.push({ label: 'Year Built', value: String(property.year_built) });
-  if (property.living_area_sqft != null) features.push({ label: 'Living Area', value: formatArea(property.living_area_sqft) });
-  if (property.bedrooms != null) features.push({ label: 'Bedrooms', value: String(property.bedrooms) });
-  if (property.bathrooms != null) features.push({ label: 'Bathrooms', value: String(property.bathrooms) });
-  if (property.living_rooms != null) features.push({ label: 'Living Rooms', value: String(property.living_rooms) });
-  if (property.kitchens != null) features.push({ label: 'Kitchens', value: String(property.kitchens) });
-  if (property.has_garage != null) features.push({ label: 'Garage', value: property.has_garage ? 'Yes' : 'No' });
-  if (property.has_garden != null) features.push({ label: 'Garden', value: property.has_garden ? 'Yes' : 'No' });
+  const numOrDash = (v: number | null | undefined) => (v != null ? String(v) : '—');
+  const boolOrDash = (v: boolean | null | undefined) => (v == null ? '—' : v ? 'Yes' : 'No');
+
+  const features: { label: string; value: string }[] = [
+    { label: 'Building Type', value: property.building_type ?? '—' },
+    { label: 'Category', value: category ?? '—' },
+    { label: 'Year Built', value: numOrDash(property.year_built) },
+    { label: 'Living Area', value: property.living_area_sqft != null ? formatArea(property.living_area_sqft) : '—' },
+    { label: 'Bedrooms', value: numOrDash(property.bedrooms) },
+    { label: 'Bathrooms', value: numOrDash(property.bathrooms) },
+    { label: 'Living Rooms', value: numOrDash(property.living_rooms) },
+    { label: 'Kitchens', value: numOrDash(property.kitchens) },
+    { label: 'Garage', value: boolOrDash(property.has_garage) },
+    { label: 'Garden', value: boolOrDash(property.has_garden) },
+  ];
 
   const fullAddress = [property.address, property.city, property.state].filter(Boolean).join(', ');
   const ownerSinceYear = owner ? new Date(owner.created_at).getFullYear() : null;
@@ -572,7 +576,7 @@ const styles = StyleSheet.create((theme) => ({
   ownerInfo: { flex: 1, gap: 2 },
   ownerName: { ...theme.typography.label, color: theme.colors.text, fontWeight: '700' },
   ownerMember: { ...theme.typography.caption, color: theme.colors.textMuted },
-  ownerLink: { ...theme.typography.caption, color: theme.colors.tint, fontWeight: '600', marginTop: 2 },
+  ownerLink: { ...theme.typography.caption, color: theme.colors.tint, fontWeight: '600', marginTop: theme.spacing(0.25) },
 
   description: { ...theme.typography.body, color: theme.colors.textSecondary, lineHeight: 24, marginBottom: theme.spacing(1.5) },
 
@@ -644,6 +648,6 @@ const styles = StyleSheet.create((theme) => ({
   solidBtn: { flex: 1.5, flexDirection: 'row', height: 56, borderRadius: theme.radii.round, backgroundColor: theme.colors.tint, justifyContent: 'center', alignItems: 'center', gap: theme.spacing(1) },
   solidBtnDisabled: { opacity: 0.4 },
   solidBtnText: { ...theme.typography.label, color: theme.colors.textInverse, fontWeight: '600' },
-  ownListingNotice: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: theme.spacing(1), paddingVertical: theme.spacing(2), paddingBottom: theme.spacing(2) + 14 },
+  ownListingNotice: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: theme.spacing(1), paddingVertical: theme.spacing(2), paddingBottom: theme.spacing(4) },
   ownListingText: { ...theme.typography.label, color: theme.colors.textSecondary },
 }));
