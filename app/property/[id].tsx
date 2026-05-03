@@ -15,10 +15,10 @@ export default function PropertyDetailScreen() {
           <Image source={{ uri: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3' }} style={styles.heroImage} />
           <View style={styles.heroOverlay}>
             <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
-              <Feather name="arrow-left" size={24} color="#fff" />
+              <Feather name="arrow-left" size={24} color={theme.colors.onImage} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconBtn}>
-              <Feather name="heart" size={24} color="#fff" />
+              <Feather name="heart" size={24} color={theme.colors.onImage} />
             </TouchableOpacity>
           </View>
         </View>
@@ -109,7 +109,7 @@ const styles = StyleSheet.create((theme) => ({
   heroContainer: { width: '100%', height: 350 },
   heroImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   heroOverlay: { position: 'absolute', top: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: theme.spacing(2) },
-  iconBtn: { width: 44, height: 44, borderRadius: theme.radii.round, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
+  iconBtn: { width: 44, height: 44, borderRadius: theme.radii.round, backgroundColor: theme.colors.scrim, justifyContent: 'center', alignItems: 'center' },
   content: { padding: theme.spacing(3), backgroundColor: theme.colors.background, borderTopLeftRadius: theme.radii.xl, borderTopRightRadius: theme.radii.xl, marginTop: -30 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: theme.spacing(1) },
   price: { ...theme.typography.h1, color: theme.colors.tint },

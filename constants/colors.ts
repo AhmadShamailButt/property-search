@@ -50,6 +50,13 @@ export const Colors = {
     rating: '#FBBF24',
     shadow: 'rgba(15, 23, 42, 0.08)',
     shadowStrong: 'rgba(15, 23, 42, 0.15)',
+
+    // On-image / overlay (constant across themes — sit on top of photography)
+    onImage: '#FFFFFF',
+    onImageMuted: 'rgba(255, 255, 255, 0.8)',
+    scrim: 'rgba(0, 0, 0, 0.3)',
+    scrimStrong: 'rgba(0, 0, 0, 0.4)',
+    backdrop: 'rgba(0, 0, 0, 0.5)',
   },
   dark: {
     // Core
@@ -102,5 +109,12 @@ export const Colors = {
     rating: '#FBBF24',
     shadow: 'rgba(0, 0, 0, 0.5)',
     shadowStrong: 'rgba(0, 0, 0, 0.8)',
+
+    // On-image / overlay (constant across themes — sit on top of photography)
+    onImage: '#FFFFFF',
+    onImageMuted: 'rgba(255, 255, 255, 0.8)',
+    scrim: 'rgba(0, 0, 0, 0.3)',
+    scrimStrong: 'rgba(0, 0, 0, 0.4)',
+    backdrop: 'rgba(0, 0, 0, 0.5)',
   },
 };

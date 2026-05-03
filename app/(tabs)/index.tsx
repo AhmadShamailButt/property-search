@@ -113,8 +113,8 @@ const styles = StyleSheet.create((theme) => ({
   filterBtn: { width: 56, height: 56, borderRadius: theme.radii.lg, backgroundColor: theme.colors.tint, justifyContent: 'center', alignItems: 'center' },
   bannerContainer: { height: 160, borderRadius: theme.radii.lg, overflow: 'hidden', marginBottom: theme.spacing(3) },
   bannerImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-  bannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', padding: theme.spacing(2.5), justifyContent: 'center' },
-  bannerTitle: { ...theme.typography.h2, color: '#ffffff', marginBottom: theme.spacing(0.5) },
-  bannerSubtitle: { ...theme.typography.body, color: 'rgba(255,255,255,0.8)' },
+  bannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: theme.colors.scrimStrong, padding: theme.spacing(2.5), justifyContent: 'center' },
+  bannerTitle: { ...theme.typography.h2, color: theme.colors.onImage, marginBottom: theme.spacing(0.5) },
+  bannerSubtitle: { ...theme.typography.body, color: theme.colors.onImageMuted },
   grid: { gap: theme.spacing(3) },
 }));
