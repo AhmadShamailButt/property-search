@@ -27,7 +27,7 @@ property-search/
 │   ├── _layout.tsx              # Root layout: AuthProvider + LocationProvider + RootNavigator + Stack
 │   ├── (auth)/                  # Auth route group (login, signup, forgot/reset password, verify-email)
 │   ├── (tabs)/                  # Tab route group (index/home, chat, favorites, profile)
-│   ├── admin/                   # Admin routes (dashboard, banners, listings, users)
+│   ├── admin/                   # Admin routes (dashboard, banners, listings, users, analytics)
 │   ├── property/                # Property detail routes
 │   │   ├── [id].tsx             # Dynamic property detail (hero gallery + interactive map)
 │   │   └── [id]/ai-chat.tsx     # Nested AI chat
@@ -47,10 +47,12 @@ property-search/
 │   └── colors.ts                # Single source of truth for color palette (light + dark)
 ├── contexts/
 │   ├── auth-context.tsx         # Supabase session/user provider + auth methods
-│   └── location-context.tsx     # Current location (city) — persisted to AsyncStorage + profiles.location
+│   ├── location-context.tsx     # Current location (city) — persisted to AsyncStorage + profiles.location
+│   └── search-session-context.tsx  # Records filter_logs after each settled search; attributes property taps
 ├── hooks/
 │   ├── useSearch.ts             # Search results + filters (debounced supabase query)
-│   └── useHomeData.ts           # Home-screen data: useProperties, useBanners, useFavorites
+│   ├── useHomeData.ts           # Home-screen data: useProperties, useBanners, useFavorites
+│   └── useAnalytics.ts          # Admin analytics aggregations over filter_logs (date-range scoped)
 ├── utils/
 │   ├── conversations.ts         # findOrCreateConversation helper for chat CTAs
 │   ├── filters.ts               # Filters/categories types + parse/serialize/format helpers

@@ -11,6 +11,19 @@ import {
   serializeFilters,
 } from '@/utils/filters';
 import type { Property } from '@/components/property/PropertyCard';
+import { useAuth } from '@/contexts/auth-context';
+import { useSearchSession } from '@/contexts/search-session-context';
+
+const filtersAreDefault = (filters: FiltersState): boolean =>
+  filters.category === DEFAULT_FILTERS.category &&
+  filters.priceMin === DEFAULT_FILTERS.priceMin &&
+  filters.priceMax === DEFAULT_FILTERS.priceMax &&
+  filters.areaMin === DEFAULT_FILTERS.areaMin &&
+  filters.areaMax === DEFAULT_FILTERS.areaMax &&
+  filters.bedrooms === DEFAULT_FILTERS.bedrooms &&
+  filters.bathrooms === DEFAULT_FILTERS.bathrooms &&
+  filters.sort === DEFAULT_FILTERS.sort &&
+  filters.city === DEFAULT_FILTERS.city;
 
 type Row = {
   id: string;
@@ -38,6 +51,8 @@ const formatRowAsProperty = (row: Row): Property => {
 export const useSearch = (query: string) => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { user } = useAuth();
+  const { recordSearchLog } = useSearchSession();
 
   const [filters, setFiltersState] = useState<FiltersState>(() => parseFilters(params));
   const [results, setResults] = useState<Property[]>([]);
@@ -73,6 +88,7 @@ export const useSearch = (query: string) => {
           .eq('property_images.is_hero', true);
 
         if (filters.category !== 'All') q = q.eq('categories.name', filters.category);
+        if (filters.city) q = q.eq('city', filters.city);
         if (filters.priceMin > PRICE_BOUNDS.min) q = q.gte('price', filters.priceMin);
         if (filters.priceMax < PRICE_BOUNDS.max) q = q.lte('price', filters.priceMax);
         if (filters.areaMin > AREA_BOUNDS.min) q = q.gte('living_area_sqft', filters.areaMin);
@@ -96,6 +112,17 @@ export const useSearch = (query: string) => {
         if (err) throw err;
         setResults((data ?? []).map((row) => formatRowAsProperty(row as unknown as Row)));
         setCount(total ?? 0);
+
+        // Log this settled search for analytics — skip pure idle landings
+        // (default filters AND empty query) to avoid noise.
+        if (user && (!filtersAreDefault(filters) || query.trim().length > 0)) {
+          recordSearchLog({
+            filters,
+            query,
+            resultCount: total ?? 0,
+            userId: user.id,
+          });
+        }
       } catch (e) {
         if (requestId !== requestIdRef.current) return;
         setError(e instanceof Error ? e.message : 'Failed to load results');
@@ -109,7 +136,10 @@ export const useSearch = (query: string) => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [filters, query]);
+    // recordSearchLog is stable (useCallback in provider); depend on user.id
+    // (a stable primitive) to avoid extra re-runs from `user` reference churn.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, query, user?.id]);
 
   return { filters, setFilters, reset, results, count, isLoading, error };
 };

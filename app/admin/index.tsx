@@ -3,8 +3,10 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
+import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function AdminDashboardScreen() {
@@ -37,6 +39,17 @@ export default function AdminDashboardScreen() {
             <Text style={styles.summaryValue}>45.2k</Text>
             <Text style={styles.summaryLabel}>Total Searches</Text>
           </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(150)} style={styles.analyticsCta}>
+          <Button
+            label="View analytics"
+            icon="bar-chart-2"
+            variant="primary"
+            size="md"
+            fullWidth
+            onPress={() => router.push('/admin/analytics')}
+          />
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(200)} style={styles.chartSection}>
@@ -77,7 +90,8 @@ const styles = StyleSheet.create((theme) => ({
   subtitle: { ...theme.typography.caption, color: theme.colors.textSecondary },
   iconBtn: { padding: theme.spacing(1), borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radii.round },
   scroll: { padding: theme.spacing(2) },
-  summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing(2), marginBottom: theme.spacing(3) },
+  summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing(2), marginBottom: theme.spacing(2) },
+  analyticsCta: { marginBottom: theme.spacing(3) },
   summaryCard: { flex: 1, minWidth: '30%', backgroundColor: theme.colors.surface, padding: theme.spacing(2), borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border, alignItems: 'center' },
   summaryValue: { ...theme.typography.h2, color: theme.colors.tint, marginBottom: theme.spacing(0.5) },
   summaryLabel: { ...theme.typography.caption, color: theme.colors.textSecondary },

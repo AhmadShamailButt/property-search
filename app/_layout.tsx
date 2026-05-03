@@ -9,6 +9,7 @@ import { useUnistyles } from 'react-native-unistyles';
 
 import { AuthProvider, useAuth, isAdminRole } from '@/contexts/auth-context';
 import { LocationProvider } from '@/contexts/location-context';
+import { SearchSessionProvider } from '@/contexts/search-session-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -68,7 +69,9 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <LocationProvider>
-        <RootNavigator />
+        <SearchSessionProvider>
+          <RootNavigator />
+        </SearchSessionProvider>
       </LocationProvider>
     </AuthProvider>
   );
