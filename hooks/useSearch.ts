@@ -1,0 +1,115 @@
+import { useEffect, useRef, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { supabase } from '@/utils/supabase';
+import {
+  DEFAULT_FILTERS,
+  FiltersState,
+  PRICE_BOUNDS,
+  AREA_BOUNDS,
+  parseFilters,
+  serializeFilters,
+} from '@/utils/filters';
+import type { Property } from '@/components/property/PropertyCard';
+
+type Row = {
+  id: string;
+  title: string;
+  address: string;
+  price: number;
+  is_featured: boolean | null;
+  categories: { name: string } | { name: string }[] | null;
+  property_images: { image_url: string }[] | null;
+};
+
+const formatRowAsProperty = (row: Row): Property => {
+  const cat = Array.isArray(row.categories) ? row.categories[0]?.name : row.categories?.name;
+  return {
+    id: row.id,
+    title: row.title,
+    address: row.address,
+    price: `$${Number(row.price).toLocaleString()}`,
+    type: cat ?? 'Property',
+    featured: !!row.is_featured,
+    image: row.property_images?.[0]?.image_url ?? '',
+  };
+};
+
+export const useSearch = (query: string) => {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const [filters, setFiltersState] = useState<FiltersState>(() => parseFilters(params));
+  const [results, setResults] = useState<Property[]>([]);
+  const [count, setCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef(0);
+
+  const setFilters = (next: FiltersState) => {
+    setFiltersState(next);
+    router.setParams(serializeFilters(next));
+  };
+
+  const reset = () => setFilters(DEFAULT_FILTERS);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const requestId = ++requestIdRef.current;
+      setIsLoading(true);
+      setError(null);
+      try {
+        const categoryJoin = filters.category === 'All' ? 'categories(name)' : 'categories!inner(name)';
+        let q = supabase
+          .from('properties')
+          .select(
+            `id, title, address, price, is_featured, ${categoryJoin}, property_images(image_url)`,
+            { count: 'exact' }
+          )
+          .eq('is_active', true)
+          .eq('property_images.is_hero', true);
+
+        if (filters.category !== 'All') q = q.eq('categories.name', filters.category);
+        if (filters.priceMin > PRICE_BOUNDS.min) q = q.gte('price', filters.priceMin);
+        if (filters.priceMax < PRICE_BOUNDS.max) q = q.lte('price', filters.priceMax);
+        if (filters.areaMin > AREA_BOUNDS.min) q = q.gte('living_area_sqft', filters.areaMin);
+        if (filters.areaMax < AREA_BOUNDS.max) q = q.lte('living_area_sqft', filters.areaMax);
+        if (filters.bedrooms !== null) q = q.gte('bedrooms', filters.bedrooms);
+        if (filters.bathrooms !== null) q = q.gte('bathrooms', filters.bathrooms);
+        if (query.trim()) q = q.ilike('title', `%${query.trim()}%`);
+
+        switch (filters.sort) {
+          case 'newest': q = q.order('created_at', { ascending: false }); break;
+          case 'highest': q = q.order('price', { ascending: false }); break;
+          case 'lowest': q = q.order('price', { ascending: true }); break;
+          default: {
+            const _exhaustive: never = filters.sort;
+            return _exhaustive;
+          }
+        }
+
+        const { data, error: err, count: total } = await q;
+        if (requestId !== requestIdRef.current) return;
+        if (err) throw err;
+        setResults((data ?? []).map((row) => formatRowAsProperty(row as unknown as Row)));
+        setCount(total ?? 0);
+      } catch (e) {
+        if (requestId !== requestIdRef.current) return;
+        setError(e instanceof Error ? e.message : 'Failed to load results');
+        setResults([]);
+        setCount(0);
+      } finally {
+        if (requestId === requestIdRef.current) setIsLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [filters, query]);
+
+  return { filters, setFilters, reset, results, count, isLoading, error };
+};
