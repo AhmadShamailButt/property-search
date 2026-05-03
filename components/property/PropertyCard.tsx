@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Pressable, Image } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { router } from 'expo-router';
+
+import { useSearchSession } from '@/contexts/search-session-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -37,6 +39,7 @@ const FALLBACK_IMAGE =
 
 export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardProps) => {
   const { theme } = useUnistyles();
+  const { attributeTap } = useSearchSession();
   const heartScale = useSharedValue(1);
   const cardScale = useSharedValue(1);
   const shine = useSharedValue(0);
@@ -68,12 +71,19 @@ export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardP
     onFavorite?.();
   };
 
+  const handleOpen = () => {
+    // Fire-and-forget: attribute the tap to the most recent search log
+    // (no-op if no recent log). Don't await — navigation should feel instant.
+    attributeTap(String(property.id));
+    router.push({ pathname: '/property/[id]', params: { id: String(property.id) } });
+  };
+
   return (
-    <Link href={`/property/${property.id}`} asChild>
-      <Pressable
-        onPressIn={() => { cardScale.value = withSpring(0.985, { damping: 16, stiffness: 220 }); }}
-        onPressOut={() => { cardScale.value = withSpring(1, { damping: 14, stiffness: 220 }); }}
-      >
+    <Pressable
+      onPress={handleOpen}
+      onPressIn={() => { cardScale.value = withSpring(0.985, { damping: 16, stiffness: 220 }); }}
+      onPressOut={() => { cardScale.value = withSpring(1, { damping: 14, stiffness: 220 }); }}
+    >
         <Animated.View style={[styles.card, cardStyle]}>
           <View style={styles.imageContainer}>
             <Image
@@ -134,8 +144,7 @@ export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardP
             </View>
           </View>
         </Animated.View>
-      </Pressable>
-    </Link>
+    </Pressable>
   );
 };
 
