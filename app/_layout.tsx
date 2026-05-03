@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { useUnistyles } from 'react-native-unistyles';
 
 import { AuthProvider, useAuth } from '@/contexts/auth-context';
+import { LocationProvider } from '@/contexts/location-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -46,6 +47,7 @@ function RootNavigator() {
         <Stack.Screen name="search" />
         <Stack.Screen name="property/[id]" />
         <Stack.Screen name="property/[id]/ai-chat" />
+        <Stack.Screen name="location-picker" options={{ presentation: 'modal' }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
@@ -55,7 +57,9 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <RootNavigator />
+      <LocationProvider>
+        <RootNavigator />
+      </LocationProvider>
     </AuthProvider>
   );
 }
