@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform, Linking, Pressable } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform, Linking, Pressable, Image } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import { router, Link, useLocalSearchParams } from 'expo-router';
-import { Image } from 'expo-image';
+
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';
 
 import { supabase } from '@/utils/supabase';
 import { formatArea } from '@/utils/filters';
@@ -155,13 +157,7 @@ export default function PropertyDetailScreen() {
               }}
             >
               {images.map((uri, i) => (
-                <Image
-                  key={i}
-                  source={{ uri }}
-                  style={[styles.heroImage, { width: screenWidth }]}
-                  contentFit="cover"
-                  transition={200}
-                />
+                <HeroImage key={i} uri={uri} width={screenWidth} />
               ))}
             </ScrollView>
           ) : (
@@ -260,7 +256,7 @@ export default function PropertyDetailScreen() {
               {owner && (
                 <View style={styles.ownerCard}>
                   {owner.avatar_url ? (
-                    <Image source={{ uri: owner.avatar_url }} style={styles.ownerAvatar} contentFit="cover" />
+                    <Image source={{ uri: owner.avatar_url }} style={styles.ownerAvatar} resizeMode="cover" />
                   ) : (
                     <View style={[styles.ownerAvatar, styles.center, { backgroundColor: theme.colors.surface }]}>
                       <Feather name="user" size={24} color={theme.colors.icon} />
@@ -356,6 +352,19 @@ export default function PropertyDetailScreen() {
   );
 }
 
+function HeroImage({ uri, width }: { uri: string; width: number }) {
+  const [src, setSrc] = useState(uri || FALLBACK_IMAGE);
+  useEffect(() => { setSrc(uri || FALLBACK_IMAGE); }, [uri]);
+  return (
+    <Image
+      source={{ uri: src }}
+      style={[styles.heroImage, { width }]}
+      resizeMode="cover"
+      onError={() => { if (src !== FALLBACK_IMAGE) setSrc(FALLBACK_IMAGE); }}
+    />
+  );
+}
+
 function MapPreview({ lat, lng, label }: { lat: number; lng: number; label: string }) {
   const { theme } = useUnistyles();
   const offset = 0.006;
@@ -382,8 +391,7 @@ function MapPreview({ lat, lng, label }: { lat: number; lng: number; label: stri
           <Image
             source={{ uri: staticUrl }}
             style={{ width: '100%', height: '100%' }}
-            contentFit="cover"
-            transition={200}
+            resizeMode="cover"
           />
         )}
 
