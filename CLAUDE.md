@@ -33,8 +33,9 @@ property-search/
 │   │   └── [id]/ai-chat.tsx     # Nested AI chat
 │   └── search.tsx               # Search screen
 ├── components/
-│   ├── ui/                      # Reusable design-system primitives (Button, Input, Banner, AuthScreen, icon-symbol)
+│   ├── ui/                      # Reusable design-system primitives (Button, Input, Banner, AuthScreen, ChipGroup, icon-symbol)
 │   ├── property/                # Domain-specific reusable components (PropertyCard, CategoryTabs)
+│   ├── admin/                   # Admin-only shared components (PropertyForm)
 │   ├── themed-text.tsx          # Themed Text wrapper
 │   └── themed-view.tsx          # Themed View wrapper
 ├── constants/
@@ -43,6 +44,8 @@ property-search/
 │   └── auth-context.tsx         # Supabase session/user provider + auth methods
 ├── utils/
 │   ├── supabase.ts              # Supabase client (configured with AsyncStorage)
+│   ├── propertyHelpers.ts       # Denormalize Supabase embedded category/image rows
+│   ├── uploadImage.ts           # expo-image-picker + Supabase Storage upload
 │   └── validation.ts            # Form validators (email, password, etc.)
 ├── supabase/
 │   ├── config.toml              # Local Supabase CLI config
