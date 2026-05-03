@@ -14,6 +14,7 @@ import { PropertyCardSkeleton } from '@/components/property/PropertyCardSkeleton
 import { useLocation } from '@/contexts/location-context';
 import { useProperties, useBanners, useFavorites } from '@/hooks/useHomeData';
 import { CATEGORIES } from '@/utils/filters';
+import { useAuth } from '@/contexts/auth-context';
 
 const CATEGORY_LABELS = CATEGORIES.map((c) => c.label);
 const HORIZONTAL_PADDING = 20;
@@ -22,6 +23,7 @@ export default function HomeScreen() {
   const { theme } = useUnistyles();
   const router = useRouter();
   const { location } = useLocation();
+  const { confirmSignOut } = useAuth();
   const [activeTab, setActiveTab] = useState<string>(CATEGORY_LABELS[0]);
 
   const { data: properties, isLoading: propsLoading, refresh } = useProperties({
@@ -71,10 +73,15 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.85}>
-            <Feather name="bell" size={20} color={theme.colors.text} />
-            <View style={styles.badge} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.85}>
+              <Feather name="bell" size={20} color={theme.colors.text} />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.85} onPress={confirmSignOut}>
+              <Feather name="log-out" size={20} color={theme.colors.text} />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(120)} style={styles.searchSection}>
@@ -203,6 +210,11 @@ const styles = StyleSheet.create((theme) => ({
     ...theme.typography.h3,
     color: theme.colors.text,
     flexShrink: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing(1),
   },
   notificationBtn: {
     width: 44,
