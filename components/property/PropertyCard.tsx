@@ -177,7 +177,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
+    borderColor: theme.colors.onImageBorder,
   },
   featuredBadge: {
     position: 'absolute',
@@ -198,7 +198,7 @@ const styles = StyleSheet.create((theme) => ({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: theme.colors.onImageShine,
   },
   featuredText: {
     ...theme.typography.caption,
@@ -209,14 +209,14 @@ const styles = StyleSheet.create((theme) => ({
     position: 'absolute',
     bottom: theme.spacing(1.5),
     left: theme.spacing(1.5),
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: theme.colors.chipOnImageBg,
     paddingHorizontal: theme.spacing(1.25),
     paddingVertical: theme.spacing(0.4),
     borderRadius: theme.radii.round,
   },
   typePillText: {
     ...theme.typography.caption,
-    color: '#0F172A',
+    color: theme.colors.chipOnImageText,
     fontWeight: '700',
   },
   content: {

@@ -4,11 +4,11 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import { router, Link, useLocalSearchParams } from 'expo-router';
 
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';
-
 import { supabase } from '@/utils/supabase';
 import { formatArea } from '@/utils/filters';
+
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';
 
 type PropertyDetail = {
   id: string;
@@ -379,14 +379,14 @@ function MapPreview({ lat, lng, label }: { lat: number; lng: number; label: stri
     <View>
       <View style={styles.mapWrapper}>
         {Platform.OS === 'web' ? (
-          // @ts-expect-error iframe is web-only — guarded by Platform.OS
-          <iframe
-            src={embedUrl}
-            title={`Map of ${label}`}
-            style={{ width: '100%', height: '100%', border: 0 }}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+          // iframe is rendered only on web; native fallback below uses a static image
+          React.createElement('iframe' as unknown as React.ComponentType<Record<string, unknown>>, {
+            src: embedUrl,
+            title: `Map of ${label}`,
+            style: { width: '100%', height: '100%', border: 0 },
+            loading: 'lazy',
+            referrerPolicy: 'no-referrer-when-downgrade',
+          })
         ) : (
           <Image
             source={{ uri: staticUrl }}
@@ -505,7 +505,7 @@ const styles = StyleSheet.create((theme) => ({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#ffffff',
+    borderColor: theme.colors.onImage,
     ...theme.shadows.strong,
   },
   mapAction: {
