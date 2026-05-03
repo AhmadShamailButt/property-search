@@ -5,15 +5,21 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
+import { useAuth } from '@/contexts/auth-context';
+
 export default function AdminDashboardScreen() {
   const { theme } = useUnistyles();
+  const { profile, confirmSignOut } = useAuth();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Admin Dashboard</Text>
-        <TouchableOpacity style={styles.iconBtn}>
-          <Feather name="calendar" size={20} color={theme.colors.text} />
+        <View style={styles.headerText}>
+          <Text style={styles.title}>Admin Dashboard</Text>
+          {profile && <Text style={styles.subtitle}>Signed in as {profile.full_name}</Text>}
+        </View>
+        <TouchableOpacity style={styles.iconBtn} onPress={confirmSignOut}>
+          <Feather name="log-out" size={20} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -57,7 +63,7 @@ export default function AdminDashboardScreen() {
           </View>
         </Animated.View>
 
-        <View style={{ height: 40 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -66,12 +72,14 @@ export default function AdminDashboardScreen() {
 const styles = StyleSheet.create((theme) => ({
   container: { flex: 1, backgroundColor: theme.colors.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: theme.spacing(3) },
+  headerText: { flex: 1, gap: theme.spacing(0.5) },
   title: { ...theme.typography.h1, color: theme.colors.text },
+  subtitle: { ...theme.typography.caption, color: theme.colors.textSecondary },
   iconBtn: { padding: theme.spacing(1), borderWidth: 1, borderColor: theme.colors.border, borderRadius: theme.radii.round },
   scroll: { padding: theme.spacing(2) },
   summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing(2), marginBottom: theme.spacing(3) },
   summaryCard: { flex: 1, minWidth: '30%', backgroundColor: theme.colors.surface, padding: theme.spacing(2), borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border, alignItems: 'center' },
-  summaryValue: { ...theme.typography.h2, color: theme.colors.tint, marginBottom: 4 },
+  summaryValue: { ...theme.typography.h2, color: theme.colors.tint, marginBottom: theme.spacing(0.5) },
   summaryLabel: { ...theme.typography.caption, color: theme.colors.textSecondary },
   chartSection: { marginBottom: theme.spacing(3) },
   sectionTitle: { ...theme.typography.h3, color: theme.colors.text, marginBottom: theme.spacing(1.5) },
@@ -86,4 +94,5 @@ const styles = StyleSheet.create((theme) => ({
   metricLabel: { ...theme.typography.body, color: theme.colors.text },
   metricValueErr: { ...theme.typography.h3, color: theme.colors.error },
   metricValueSucc: { ...theme.typography.h3, color: theme.colors.success },
+  bottomSpacer: { height: theme.spacing(5) },
 }));

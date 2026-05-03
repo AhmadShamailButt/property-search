@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/auth-context';
 
 export default function ProfileScreen() {
   const { theme } = useUnistyles();
-  const { user, signOut } = useAuth();
+  const { user, confirmSignOut } = useAuth();
 
   const isDark = UnistylesRuntime.themeName === 'dark';
 
@@ -50,11 +50,11 @@ export default function ProfileScreen() {
           <Feather name="chevron-right" size={20} color={theme.colors.textMuted} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={signOut}>
+        <TouchableOpacity style={styles.menuItem} onPress={confirmSignOut}>
           <View style={styles.menuIconContainer}>
             <Feather name="log-out" size={20} color={theme.colors.error} />
           </View>
-          <Text style={[styles.menuText, { color: theme.colors.error }]}>Log Out</Text>
+          <Text style={[styles.menuText, styles.menuTextDanger]}>Log Out</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -75,4 +75,5 @@ const styles = StyleSheet.create((theme) => ({
   menuItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, padding: theme.spacing(2), borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border },
   menuIconContainer: { width: 40, height: 40, borderRadius: theme.radii.round, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center', marginRight: theme.spacing(2) },
   menuText: { flex: 1, ...theme.typography.body, color: theme.colors.text, fontWeight: '500' },
+  menuTextDanger: { color: theme.colors.error },
 }));
