@@ -489,7 +489,6 @@ const styles = StyleSheet.create((theme) => ({
   topBarEyebrow: { ...theme.typography.caption, color: theme.colors.tint, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   topBarTitle: { ...theme.typography.h3, color: theme.colors.text },
   topBarSpacer: { width: 40 },
-  iconBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
 
   scroll: { padding: theme.spacing(2.5), gap: theme.spacing(2.5), paddingBottom: theme.spacing(6) },
 
