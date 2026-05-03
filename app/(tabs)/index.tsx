@@ -1,40 +1,30 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 
-import { Input } from '../../components/ui/Input';
-import { PropertyCard, Property } from '../../components/property/PropertyCard';
-import { CategoryTabs } from '../../components/property/CategoryTabs';
+import { Input } from '@/components/ui/Input';
+import { PropertyCard } from '@/components/property/PropertyCard';
+import { CategoryTabs } from '@/components/property/CategoryTabs';
+import { useSearch } from '@/hooks/useSearch';
+import { CATEGORIES } from '@/utils/filters';
 
-const CATEGORIES = ['All', 'Villa', 'Apartment', 'House'];
-
-const PROPERTIES: Property[] = [
-  {
-    id: '1',
-    title: 'Modern Glass Villa',
-    address: '124 Beverly Hills, CA',
-    price: '$4,500,000',
-    type: 'Villa',
-    featured: true,
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-  },
-  {
-    id: '2',
-    title: 'Minimalist Apartment',
-    address: '89 NYC, New York',
-    price: '$1,200,000',
-    type: 'Apartment',
-    featured: false,
-    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-  }
-];
+const CATEGORY_LABELS = CATEGORIES.map((c) => c.label);
 
 export default function HomeScreen() {
   const { theme } = useUnistyles();
-  const [activeTab, setActiveTab] = useState('All');
+  const router = useRouter();
+  const { results, isLoading } = useSearch('');
+
+  const goToSearch = useCallback(
+    (params?: { category?: string }) =>
+      router.push({ pathname: '/search', params: params ?? {} }),
+    [router]
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -54,42 +44,42 @@ export default function HomeScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(200)} style={styles.searchSection}>
-          <View style={styles.searchInputWrap}>
-            <Input
-              icon="search"
-              placeholder="Search for Modern Villas..."
-              style={styles.searchInput}
-            />
-          </View>
-          <TouchableOpacity style={styles.filterBtn}>
+          <TouchableOpacity
+            style={styles.searchInputWrap}
+            activeOpacity={0.8}
+            onPress={() => goToSearch()}
+          >
+            <View pointerEvents="none">
+              <Input
+                icon="search"
+                placeholder="Search for Modern Villas..."
+                style={styles.searchInput}
+                editable={false}
+              />
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.filterBtn} onPress={() => goToSearch()}>
             <Feather name="sliders" size={20} color={theme.colors.textInverse} />
           </TouchableOpacity>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(300)} style={styles.bannerContainer}>
-          <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }} 
-            style={styles.bannerImage} 
-          />
-          <View style={styles.bannerOverlay}>
-            <Text style={styles.bannerTitle}>Find your dream home today</Text>
-            <Text style={styles.bannerSubtitle}>Get 10% off closing costs on featured houses</Text>
-          </View>
-        </Animated.View>
-
         <Animated.View entering={FadeInRight.delay(400)}>
-          <CategoryTabs 
-            categories={CATEGORIES} 
-            activeCategory={activeTab} 
-            onSelect={setActiveTab} 
+          <CategoryTabs
+            categories={CATEGORY_LABELS}
+            activeCategory="All"
+            onSelect={(cat) => goToSearch(cat === 'All' ? undefined : { category: cat })}
             style={{ marginBottom: theme.spacing(3) }}
           />
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(500)} style={styles.grid}>
-          {PROPERTIES.map((prop) => (
-            <PropertyCard key={prop.id} property={prop} />
-          ))}
+          {isLoading && results.length === 0 ? (
+            <ActivityIndicator color={theme.colors.tint} style={{ marginTop: theme.spacing(4) }} />
+          ) : results.length === 0 ? (
+            <Text style={styles.empty}>No properties available.</Text>
+          ) : (
+            results.map((prop) => <PropertyCard key={prop.id} property={prop} />)
+          )}
         </Animated.View>
 
         <View style={{ height: 100 }} />
@@ -111,10 +101,6 @@ const styles = StyleSheet.create((theme) => ({
   searchInputWrap: { flex: 1 },
   searchInput: { paddingRight: 50 },
   filterBtn: { width: 56, height: 56, borderRadius: theme.radii.lg, backgroundColor: theme.colors.tint, justifyContent: 'center', alignItems: 'center' },
-  bannerContainer: { height: 160, borderRadius: theme.radii.lg, overflow: 'hidden', marginBottom: theme.spacing(3) },
-  bannerImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-  bannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: theme.colors.scrimStrong, padding: theme.spacing(2.5), justifyContent: 'center' },
-  bannerTitle: { ...theme.typography.h2, color: theme.colors.onImage, marginBottom: theme.spacing(0.5) },
-  bannerSubtitle: { ...theme.typography.body, color: theme.colors.onImageMuted },
   grid: { gap: theme.spacing(3) },
+  empty: { ...theme.typography.body, color: theme.colors.textSecondary, textAlign: 'center', marginTop: theme.spacing(4) },
 }));
