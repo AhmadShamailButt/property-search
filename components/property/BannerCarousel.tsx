@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, useWindowDimensions, NativeScrollEvent, NativeSyntheticEvent, Pressable } from 'react-native';
 import { Image } from 'expo-image';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
-  Easing,
   interpolate,
   Extrapolation,
+  type SharedValue,
 } from 'react-native-reanimated';
 
 export type CarouselItem = {
@@ -31,7 +30,6 @@ export const BannerCarousel = ({
   height = 180,
   autoplayMs = 4500,
 }: BannerCarouselProps) => {
-  const { theme } = useUnistyles();
   const { width: winWidth } = useWindowDimensions();
   const slideWidth = Math.min(winWidth, 700) - horizontalPadding * 2;
   const scrollRef = useRef<ScrollView>(null);
@@ -39,9 +37,9 @@ export const BannerCarousel = ({
   const userInteracting = useRef(false);
   const progress = useSharedValue(0);
 
-  const goTo = (i: number, animated = true) => {
+  const goTo = useCallback((i: number, animated = true) => {
     scrollRef.current?.scrollTo({ x: i * slideWidth, animated });
-  };
+  }, [slideWidth]);
 
   useEffect(() => {
     if (items.length <= 1 || autoplayMs <= 0) return;
@@ -51,7 +49,7 @@ export const BannerCarousel = ({
       goTo(next);
     }, autoplayMs);
     return () => clearInterval(id);
-  }, [index, items.length, autoplayMs, slideWidth]);
+  }, [index, items.length, autoplayMs, goTo]);
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const x = e.nativeEvent.contentOffset.x;
@@ -104,7 +102,7 @@ const BannerSlide = ({
   width: number;
   height: number;
   index: number;
-  progress: Animated.SharedValue<number>;
+  progress: SharedValue<number>;
 }) => {
   const imageStyle = useAnimatedStyle(() => {
     const scale = interpolate(
@@ -148,7 +146,7 @@ const BannerSlide = ({
   );
 };
 
-const Dot = ({ index, progress }: { index: number; progress: Animated.SharedValue<number> }) => {
+const Dot = ({ index, progress }: { index: number; progress: SharedValue<number> }) => {
   const style = useAnimatedStyle(() => {
     const w = interpolate(
       progress.value,
@@ -176,7 +174,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   slideOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.42)',
+    backgroundColor: theme.colors.bannerOverlay,
   },
   slideContent: {
     position: 'absolute',
@@ -186,12 +184,12 @@ const styles = StyleSheet.create((theme) => ({
   },
   slideTitle: {
     ...theme.typography.h2,
-    color: '#ffffff',
+    color: theme.colors.onImage,
     marginBottom: theme.spacing(0.5),
   },
   slideSub: {
     ...theme.typography.body,
-    color: 'rgba(255,255,255,0.85)',
+    color: theme.colors.onImageMuted,
   },
   dotsRow: {
     flexDirection: 'row',

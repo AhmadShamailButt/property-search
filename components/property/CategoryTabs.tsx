@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, TouchableOpacity, Text, View, ViewStyle } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -19,7 +19,6 @@ interface CategoryTabsProps {
 type TabLayout = { x: number; width: number };
 
 export const CategoryTabs = ({ categories, activeCategory, onSelect, style }: CategoryTabsProps) => {
-  const { theme } = useUnistyles();
   const layouts = useRef<Record<string, TabLayout>>({});
   const [ready, setReady] = useState(false);
 

@@ -54,8 +54,13 @@ export const Colors = {
     // On-image / overlay (constant across themes — sit on top of photography)
     onImage: '#FFFFFF',
     onImageMuted: 'rgba(255, 255, 255, 0.8)',
+    onImageBorder: 'rgba(255, 255, 255, 0.18)',
+    onImageShine: 'rgba(255, 255, 255, 0.35)',
+    chipOnImageBg: 'rgba(255, 255, 255, 0.92)',
+    chipOnImageText: '#0F172A',
     scrim: 'rgba(0, 0, 0, 0.3)',
     scrimStrong: 'rgba(0, 0, 0, 0.4)',
+    bannerOverlay: 'rgba(0, 0, 0, 0.42)',
     backdrop: 'rgba(0, 0, 0, 0.5)',
   },
   dark: {
@@ -113,8 +118,13 @@ export const Colors = {
     // On-image / overlay (constant across themes — sit on top of photography)
     onImage: '#FFFFFF',
     onImageMuted: 'rgba(255, 255, 255, 0.8)',
+    onImageBorder: 'rgba(255, 255, 255, 0.18)',
+    onImageShine: 'rgba(255, 255, 255, 0.35)',
+    chipOnImageBg: 'rgba(255, 255, 255, 0.92)',
+    chipOnImageText: '#0F172A',
     scrim: 'rgba(0, 0, 0, 0.3)',
     scrimStrong: 'rgba(0, 0, 0, 0.4)',
+    bannerOverlay: 'rgba(0, 0, 0, 0.42)',
     backdrop: 'rgba(0, 0, 0, 0.5)',
   },
 };
