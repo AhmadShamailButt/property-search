@@ -31,6 +31,10 @@ property-search/
 │   ├── property/                # Property detail routes
 │   │   ├── [id].tsx             # Dynamic property detail (hero gallery + interactive map)
 │   │   └── [id]/ai-chat.tsx     # Nested AI chat
+│   ├── profile/                 # Public user profile
+│   │   └── [id].tsx             # Public profile (avatar, role, member-since, listings)
+│   ├── conversation/            # Searcher ↔ owner messaging
+│   │   └── [id].tsx             # Conversation thread (message list + composer)
 │   ├── location-picker.tsx      # Modal route — set/update current location
 │   └── search.tsx               # Search screen
 ├── components/
@@ -48,9 +52,10 @@ property-search/
 │   ├── useSearch.ts             # Search results + filters (debounced supabase query)
 │   └── useHomeData.ts           # Home-screen data: useProperties, useBanners, useFavorites
 ├── utils/
+│   ├── conversations.ts         # findOrCreateConversation helper for chat CTAs
 │   ├── filters.ts               # Filters/categories types + parse/serialize/format helpers
+│   ├── propertyHelpers.ts       # Denormalize Supabase embedded category/image rows + toProperty mapper
 │   ├── supabase.ts              # Supabase client (configured with AsyncStorage)
-│   ├── propertyHelpers.ts       # Denormalize Supabase embedded category/image rows
 │   ├── uploadImage.ts           # expo-image-picker + Supabase Storage upload
 │   └── validation.ts            # Form validators (email, password, etc.)
 ├── supabase/
