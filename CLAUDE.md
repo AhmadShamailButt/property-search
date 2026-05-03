@@ -36,6 +36,7 @@ property-search/
 ├── components/
 │   ├── ui/                      # Reusable design-system primitives (Button, Input, Banner, AuthScreen, BottomSheet, Chip, ChipGroup, RangeSlider, Section, icon-symbol)
 │   ├── property/                # Domain-specific reusable components (PropertyCard, CategoryTabs, BannerCarousel, PropertyCardSkeleton, FilterSheet)
+│   ├── admin/                   # Admin-only shared components (PropertyForm)
 │   ├── themed-text.tsx          # Themed Text wrapper
 │   └── themed-view.tsx          # Themed View wrapper
 ├── constants/
@@ -49,6 +50,8 @@ property-search/
 ├── utils/
 │   ├── filters.ts               # Filters/categories types + parse/serialize/format helpers
 │   ├── supabase.ts              # Supabase client (configured with AsyncStorage)
+│   ├── propertyHelpers.ts       # Denormalize Supabase embedded category/image rows
+│   ├── uploadImage.ts           # expo-image-picker + Supabase Storage upload
 │   └── validation.ts            # Form validators (email, password, etc.)
 ├── supabase/
 │   ├── config.toml              # Local Supabase CLI config

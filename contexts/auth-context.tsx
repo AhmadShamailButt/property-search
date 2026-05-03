@@ -1,15 +1,36 @@
 import React, { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import { Alert } from 'react-native';
 import { type Session, type User } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import { supabase } from '@/utils/supabase';
 
+export type UserRole = 'searcher' | 'owner' | 'admin';
+
+export const ROLE_LABEL: Record<UserRole, string> = {
+  searcher: 'Searcher',
+  owner: 'Owner',
+  admin: 'Admin',
+};
+
+export const isAdminRole = (role: UserRole | undefined | null): boolean => role === 'admin';
+
+export type Profile = {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  role: UserRole;
+  is_active: boolean;
+};
+
 type AuthContextType = {
   session: Session | null;
   user: User | null;
+  profile: Profile | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  confirmSignOut: () => void;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
   resendVerificationEmail: (email: string) => Promise<{ error: string | null }>;
@@ -36,6 +57,7 @@ function extractHashParams(url: string): Record<string, string> {
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -50,6 +72,31 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session?.user) {
+      setProfile(null);
+      return;
+    }
+    let cancelled = false;
+    supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, role, is_active')
+      .eq('id', session.user.id)
+      .single()
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.warn('[auth] failed to load profile:', error.message);
+          setProfile(null);
+          return;
+        }
+        setProfile((data as Profile) ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user?.id]);
 
   useEffect(() => {
     const handleURL = async (event: { url: string }) => {
@@ -88,6 +135,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await supabase.auth.signOut();
   };
 
+  const confirmSignOut = () => {
+    Alert.alert('Sign out?', 'You will need to log in again to continue.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: () => signOut() },
+    ]);
+  };
+
   const resetPassword = async (email: string) => {
     const redirectTo = Linking.createURL('reset-password');
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
@@ -109,10 +163,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
       value={{
         session,
         user: session?.user ?? null,
+        profile,
         isLoading,
         signIn,
         signUp,
         signOut,
+        confirmSignOut,
         resetPassword,
         updatePassword,
         resendVerificationEmail,
