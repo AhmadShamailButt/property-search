@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform, Linking, Pressable, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform, Linking, Pressable, Image, Alert } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import { router, Link, useLocalSearchParams } from 'expo-router';
 
 import { supabase } from '@/utils/supabase';
 import { formatArea } from '@/utils/filters';
+import { useAuth } from '@/contexts/auth-context';
+import { findOrCreateConversation } from '@/utils/conversations';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';
@@ -36,7 +38,7 @@ type PropertyDetail = {
   longitude: number | null;
   categories: { name: string } | { name: string }[] | null;
   property_images: { image_url: string; is_hero: boolean | null; sort_order: number | null }[] | null;
-  profiles: { full_name: string; avatar_url: string | null; created_at: string } | null;
+  profiles: { id: string; full_name: string; avatar_url: string | null; phone: string | null; created_at: string } | null;
 };
 
 const formatFullPrice = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`;
@@ -52,6 +54,7 @@ export default function PropertyDetailScreen() {
   const { theme } = useUnistyles();
   const { width: screenWidth } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuth();
 
   const [property, setProperty] = useState<PropertyDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,7 +77,7 @@ export default function PropertyDetailScreen() {
           ai_score, ai_score_summary, created_at, latitude, longitude,
           categories(name),
           property_images(image_url, is_hero, sort_order),
-          profiles!properties_owner_id_fkey(full_name, avatar_url, created_at)
+          profiles!properties_owner_id_fkey(id, full_name, avatar_url, phone, created_at)
         `)
         .eq('id', id)
         .single();
@@ -254,7 +257,12 @@ export default function PropertyDetailScreen() {
           {activeTab === 'Description' && (
             <View style={styles.tabContent}>
               {owner && (
-                <View style={styles.ownerCard}>
+                <Pressable
+                  style={({ pressed }) => [styles.ownerCard, pressed && styles.ownerCardPressed]}
+                  onPress={() => router.push({ pathname: '/profile/[id]', params: { id: owner.id } })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`View ${owner.full_name}'s profile`}
+                >
                   {owner.avatar_url ? (
                     <Image source={{ uri: owner.avatar_url }} style={styles.ownerAvatar} resizeMode="cover" />
                   ) : (
@@ -265,8 +273,10 @@ export default function PropertyDetailScreen() {
                   <View style={styles.ownerInfo}>
                     <Text style={styles.ownerName}>{owner.full_name}</Text>
                     {ownerSinceYear && <Text style={styles.ownerMember}>Member since {ownerSinceYear}</Text>}
+                    <Text style={styles.ownerLink}>View profile</Text>
                   </View>
-                </View>
+                  <Feather name="chevron-right" size={22} color={theme.colors.icon} />
+                </Pressable>
               )}
 
               <View>
@@ -338,12 +348,110 @@ export default function PropertyDetailScreen() {
         </View>
       </ScrollView>
 
+      <PropertyBottomBar
+        currentUserId={user?.id ?? null}
+        owner={owner}
+        propertyId={property.id}
+      />
+    </View>
+  );
+}
+
+function PropertyBottomBar({
+  currentUserId,
+  owner,
+  propertyId,
+}: {
+  currentUserId: string | null;
+  owner: PropertyDetail['profiles'];
+  propertyId: string;
+}) {
+  const { theme } = useUnistyles();
+  const [isOpeningChat, setIsOpeningChat] = useState(false);
+
+  const isOwnListing = !!currentUserId && !!owner && currentUserId === owner.id;
+  const canCall = !isOwnListing && !!owner?.phone;
+
+  if (isOwnListing) {
+    return (
+      <View style={styles.bottomBarWrap}>
+        <View style={styles.ownListingNotice}>
+          <Feather name="info" size={16} color={theme.colors.textSecondary} />
+          <Text style={styles.ownListingText}>This is your listing.</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const handleCall = () => {
+    if (!canCall || !owner?.phone) return;
+    const phone = owner.phone;
+    const dial = () => Linking.openURL(`tel:${phone}`);
+
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm(`Call ${phone}?`)) {
+        dial();
+      }
+      return;
+    }
+
+    Alert.alert(
+      'Call owner',
+      `Call ${phone}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Call', onPress: dial },
+      ],
+      { cancelable: true },
+    );
+  };
+
+  const handleChat = async () => {
+    if (!currentUserId || !owner) return;
+    if (currentUserId === owner.id) return;
+    if (isOpeningChat) return;
+    setIsOpeningChat(true);
+    try {
+      const { id: conversationId } = await findOrCreateConversation({
+        searcherId: currentUserId,
+        ownerId: owner.id,
+        propertyId,
+      });
+      router.push({ pathname: '/conversation/[id]', params: { id: conversationId } });
+    } catch {
+      // helper logs the error; surface a non-blocking notice if needed
+    } finally {
+      setIsOpeningChat(false);
+    }
+  };
+
+  return (
+    <View style={styles.bottomBarWrap}>
+      {!canCall && (
+        <Text style={styles.bottomBarHint}>Phone not provided</Text>
+      )}
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.outlineBtn}>
-          <Feather name="message-circle" size={20} color={theme.colors.text} />
+        <TouchableOpacity
+          style={styles.outlineBtn}
+          onPress={handleChat}
+          disabled={isOpeningChat || !currentUserId}
+          accessibilityRole="button"
+          accessibilityLabel="Chat with owner"
+        >
+          {isOpeningChat ? (
+            <ActivityIndicator size="small" color={theme.colors.text} />
+          ) : (
+            <Feather name="message-circle" size={20} color={theme.colors.text} />
+          )}
           <Text style={styles.outlineBtnText}>Chat</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.solidBtn}>
+        <TouchableOpacity
+          style={[styles.solidBtn, !canCall && styles.solidBtnDisabled]}
+          onPress={handleCall}
+          disabled={!canCall}
+          accessibilityRole="button"
+          accessibilityLabel="Call owner"
+        >
           <Feather name="phone-call" size={20} color={theme.colors.textInverse} />
           <Text style={styles.solidBtnText}>Call Owner</Text>
         </TouchableOpacity>
@@ -459,10 +567,12 @@ const styles = StyleSheet.create((theme) => ({
   sectionTitle: { ...theme.typography.h3, color: theme.colors.text, marginBottom: theme.spacing(1.5) },
 
   ownerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, padding: theme.spacing(2), borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border, gap: theme.spacing(1.5) },
+  ownerCardPressed: { opacity: 0.7 },
   ownerAvatar: { width: 56, height: 56, borderRadius: theme.radii.round },
   ownerInfo: { flex: 1, gap: 2 },
   ownerName: { ...theme.typography.label, color: theme.colors.text, fontWeight: '700' },
   ownerMember: { ...theme.typography.caption, color: theme.colors.textMuted },
+  ownerLink: { ...theme.typography.caption, color: theme.colors.tint, fontWeight: '600', marginTop: 2 },
 
   description: { ...theme.typography.body, color: theme.colors.textSecondary, lineHeight: 24, marginBottom: theme.spacing(1.5) },
 
@@ -526,9 +636,14 @@ const styles = StyleSheet.create((theme) => ({
     marginLeft: 'auto',
   },
 
-  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.colors.card, flexDirection: 'row', padding: theme.spacing(2), paddingBottom: 30, gap: theme.spacing(2), borderTopWidth: 1, borderTopColor: theme.colors.border },
+  bottomBarWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.colors.card, borderTopWidth: 1, borderTopColor: theme.colors.border },
+  bottomBar: { flexDirection: 'row', padding: theme.spacing(2), paddingBottom: 30, gap: theme.spacing(2) },
+  bottomBarHint: { ...theme.typography.caption, color: theme.colors.textMuted, textAlign: 'center', paddingTop: theme.spacing(1) },
   outlineBtn: { flex: 1, flexDirection: 'row', height: 56, borderRadius: theme.radii.round, borderWidth: 1, borderColor: theme.colors.border, justifyContent: 'center', alignItems: 'center', gap: theme.spacing(1) },
   outlineBtnText: { ...theme.typography.label, color: theme.colors.text, fontWeight: '600' },
   solidBtn: { flex: 1.5, flexDirection: 'row', height: 56, borderRadius: theme.radii.round, backgroundColor: theme.colors.tint, justifyContent: 'center', alignItems: 'center', gap: theme.spacing(1) },
+  solidBtnDisabled: { opacity: 0.4 },
   solidBtnText: { ...theme.typography.label, color: theme.colors.textInverse, fontWeight: '600' },
+  ownListingNotice: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: theme.spacing(1), paddingVertical: theme.spacing(2), paddingBottom: theme.spacing(2) + 14 },
+  ownListingText: { ...theme.typography.label, color: theme.colors.textSecondary },
 }));
