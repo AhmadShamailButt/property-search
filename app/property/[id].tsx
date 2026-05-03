@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform, Linking, Pressable } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import { router, Link, useLocalSearchParams } from 'expo-router';
@@ -155,7 +155,13 @@ export default function PropertyDetailScreen() {
               }}
             >
               {images.map((uri, i) => (
-                <Image key={i} source={uri} style={[styles.heroImage, { width: screenWidth }]} />
+                <Image
+                  key={i}
+                  source={{ uri }}
+                  style={[styles.heroImage, { width: screenWidth }]}
+                  contentFit="cover"
+                  transition={200}
+                />
               ))}
             </ScrollView>
           ) : (
@@ -254,7 +260,7 @@ export default function PropertyDetailScreen() {
               {owner && (
                 <View style={styles.ownerCard}>
                   {owner.avatar_url ? (
-                    <Image source={owner.avatar_url} style={styles.ownerAvatar} />
+                    <Image source={{ uri: owner.avatar_url }} style={styles.ownerAvatar} contentFit="cover" />
                   ) : (
                     <View style={[styles.ownerAvatar, styles.center, { backgroundColor: theme.colors.surface }]}>
                       <Feather name="user" size={24} color={theme.colors.icon} />
@@ -318,15 +324,14 @@ export default function PropertyDetailScreen() {
 
           {activeTab === 'Location' && (
             <View style={styles.tabContent}>
-              <View style={styles.mapPlaceholder}>
-                <Feather name="map" size={48} color={theme.colors.border} />
-                <Text style={styles.mapText}>Map preview</Text>
-                {property.latitude != null && property.longitude != null && (
-                  <Text style={styles.mapSub}>
-                    {property.latitude.toFixed(4)}, {property.longitude.toFixed(4)}
-                  </Text>
-                )}
-              </View>
+              {property.latitude != null && property.longitude != null ? (
+                <MapPreview lat={property.latitude} lng={property.longitude} label={property.title} />
+              ) : (
+                <View style={styles.mapPlaceholder}>
+                  <Feather name="map" size={48} color={theme.colors.border} />
+                  <Text style={styles.mapText}>Coordinates not provided</Text>
+                </View>
+              )}
 
               <View>
                 <Text style={styles.sectionTitle}>Address</Text>
@@ -347,6 +352,53 @@ export default function PropertyDetailScreen() {
           <Text style={styles.solidBtnText}>Call Owner</Text>
         </TouchableOpacity>
       </View>
+    </View>
+  );
+}
+
+function MapPreview({ lat, lng, label }: { lat: number; lng: number; label: string }) {
+  const { theme } = useUnistyles();
+  const offset = 0.006;
+  const bbox = `${lng - offset},${lat - offset},${lng + offset},${lat + offset}`;
+  const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+  const externalUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
+  const staticUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=600x300&markers=${lat},${lng},red`;
+
+  const openExternal = () => Linking.openURL(externalUrl);
+
+  return (
+    <View>
+      <View style={styles.mapWrapper}>
+        {Platform.OS === 'web' ? (
+          // @ts-expect-error iframe is web-only — guarded by Platform.OS
+          <iframe
+            src={embedUrl}
+            title={`Map of ${label}`}
+            style={{ width: '100%', height: '100%', border: 0 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        ) : (
+          <Image
+            source={{ uri: staticUrl }}
+            style={{ width: '100%', height: '100%' }}
+            contentFit="cover"
+            transition={200}
+          />
+        )}
+
+        <View style={styles.mapPin} pointerEvents="none">
+          <View style={styles.mapPinInner}>
+            <Feather name="map-pin" size={14} color={theme.colors.textInverse} />
+          </View>
+        </View>
+      </View>
+
+      <Pressable style={styles.mapAction} onPress={openExternal}>
+        <Feather name="external-link" size={14} color={theme.colors.tint} />
+        <Text style={styles.mapActionText}>Open in OpenStreetMap</Text>
+        <Text style={styles.mapCoords}>{lat.toFixed(4)}, {lng.toFixed(4)}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -419,6 +471,52 @@ const styles = StyleSheet.create((theme) => ({
   mapPlaceholder: { height: 200, backgroundColor: theme.colors.surface, borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border, justifyContent: 'center', alignItems: 'center', gap: theme.spacing(1) },
   mapText: { ...theme.typography.label, color: theme.colors.textSecondary },
   mapSub: { ...theme.typography.caption, color: theme.colors.textMuted },
+
+  mapWrapper: {
+    height: 240,
+    borderRadius: theme.radii.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
+    position: 'relative',
+  },
+  mapPin: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -36,
+    marginLeft: -16,
+    alignItems: 'center',
+  },
+  mapPinInner: {
+    width: 32,
+    height: 32,
+    borderRadius: theme.radii.round,
+    backgroundColor: theme.colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    ...theme.shadows.strong,
+  },
+  mapAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing(0.75),
+    marginTop: theme.spacing(1),
+    paddingHorizontal: theme.spacing(1),
+  },
+  mapActionText: {
+    ...theme.typography.label,
+    color: theme.colors.tint,
+    fontWeight: '600',
+  },
+  mapCoords: {
+    ...theme.typography.caption,
+    color: theme.colors.textMuted,
+    marginLeft: 'auto',
+  },
 
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.colors.card, flexDirection: 'row', padding: theme.spacing(2), paddingBottom: 30, gap: theme.spacing(2), borderTopWidth: 1, borderTopColor: theme.colors.border },
   outlineBtn: { flex: 1, flexDirection: 'row', height: 56, borderRadius: theme.radii.round, borderWidth: 1, borderColor: theme.colors.border, justifyContent: 'center', alignItems: 'center', gap: theme.spacing(1) },
