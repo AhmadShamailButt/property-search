@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
+  type ViewProps,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
@@ -219,11 +220,8 @@ export default function ConversationScreen() {
         )}
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
-      >
+      <KeyboardAvoidShim>
+
         {error ? (
           <View style={styles.errorBanner}>
             <Feather name="alert-circle" size={14} color={theme.colors.error} />
@@ -281,9 +279,20 @@ export default function ConversationScreen() {
             )}
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAvoidShim>
     </SafeAreaView>
   );
+}
+
+function KeyboardAvoidShim({ children, ...rest }: ViewProps) {
+  if (Platform.OS === 'ios') {
+    return (
+      <KeyboardAvoidingView style={styles.flex} behavior="padding" keyboardVerticalOffset={60} {...rest}>
+        {children}
+      </KeyboardAvoidingView>
+    );
+  }
+  return <View style={styles.flex} {...rest}>{children}</View>;
 }
 
 const styles = StyleSheet.create((theme) => ({
@@ -325,6 +334,7 @@ const styles = StyleSheet.create((theme) => ({
   headerName: { ...theme.typography.label, color: theme.colors.text, fontWeight: '700' },
   headerSubtitle: { ...theme.typography.caption, color: theme.colors.textSecondary, marginTop: 1 },
 
+  list: { flex: 1 },
   messageList: {
     padding: theme.spacing(2),
     gap: theme.spacing(1),
