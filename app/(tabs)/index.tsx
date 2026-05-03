@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
@@ -12,6 +11,7 @@ import { PropertyCard } from '@/components/property/PropertyCard';
 import { CategoryTabs } from '@/components/property/CategoryTabs';
 import { useSearch } from '@/hooks/useSearch';
 import { CATEGORIES } from '@/utils/filters';
+import { useAuth } from '@/contexts/auth-context';
 
 const CATEGORY_LABELS = CATEGORIES.map((c) => c.label);
 
@@ -19,6 +19,7 @@ export default function HomeScreen() {
   const { theme } = useUnistyles();
   const router = useRouter();
   const { results, isLoading } = useSearch('');
+  const { confirmSignOut } = useAuth();
 
   const goToSearch = useCallback(
     (params?: { category?: string }) =>
@@ -37,10 +38,15 @@ export default function HomeScreen() {
               <Feather name="chevron-down" size={20} color={theme.colors.text} />
             </View>
           </View>
-          <TouchableOpacity style={styles.notificationBtn}>
-            <Feather name="bell" size={20} color={theme.colors.text} />
-            <View style={styles.badge} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.notificationBtn}>
+              <Feather name="bell" size={20} color={theme.colors.text} />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.notificationBtn} onPress={confirmSignOut}>
+              <Feather name="log-out" size={20} color={theme.colors.text} />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         <Animated.View entering={FadeInDown.delay(200)} style={styles.searchSection}>
@@ -95,6 +101,7 @@ const styles = StyleSheet.create((theme) => ({
   locationLabel: { ...theme.typography.caption, color: theme.colors.textSecondary, marginBottom: theme.spacing(0.5) },
   locationRow: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing(0.5) },
   locationText: { ...theme.typography.h3, color: theme.colors.text },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing(1) },
   notificationBtn: { width: 44, height: 44, borderRadius: theme.radii.round, backgroundColor: theme.colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: theme.colors.border },
   badge: { position: 'absolute', top: 10, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.accent },
   searchSection: { flexDirection: 'row', gap: theme.spacing(2), marginBottom: theme.spacing(3), alignItems: 'center' },
