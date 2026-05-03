@@ -24,25 +24,31 @@ A React Native (Expo) property-search app backed by Supabase.
 ```
 property-search/
 ├── app/                          # Expo Router routes ONLY (no business logic, no shared components)
-│   ├── _layout.tsx              # Root layout: AuthProvider + RootNavigator + Stack
+│   ├── _layout.tsx              # Root layout: AuthProvider + LocationProvider + RootNavigator + Stack
 │   ├── (auth)/                  # Auth route group (login, signup, forgot/reset password, verify-email)
 │   ├── (tabs)/                  # Tab route group (index/home, chat, favorites, profile)
 │   ├── admin/                   # Admin routes (dashboard, banners, listings, users)
 │   ├── property/                # Property detail routes
-│   │   ├── [id].tsx             # Dynamic property detail
+│   │   ├── [id].tsx             # Dynamic property detail (hero gallery + interactive map)
 │   │   └── [id]/ai-chat.tsx     # Nested AI chat
+│   ├── location-picker.tsx      # Modal route — set/update current location
 │   └── search.tsx               # Search screen
 ├── components/
-│   ├── ui/                      # Reusable design-system primitives (Button, Input, Banner, AuthScreen, ChipGroup, icon-symbol)
-│   ├── property/                # Domain-specific reusable components (PropertyCard, CategoryTabs)
+│   ├── ui/                      # Reusable design-system primitives (Button, Input, Banner, AuthScreen, BottomSheet, Chip, ChipGroup, RangeSlider, Section, icon-symbol)
+│   ├── property/                # Domain-specific reusable components (PropertyCard, CategoryTabs, BannerCarousel, PropertyCardSkeleton, FilterSheet)
 │   ├── admin/                   # Admin-only shared components (PropertyForm)
 │   ├── themed-text.tsx          # Themed Text wrapper
 │   └── themed-view.tsx          # Themed View wrapper
 ├── constants/
 │   └── colors.ts                # Single source of truth for color palette (light + dark)
 ├── contexts/
-│   └── auth-context.tsx         # Supabase session/user provider + auth methods
+│   ├── auth-context.tsx         # Supabase session/user provider + auth methods
+│   └── location-context.tsx     # Current location (city) — persisted to AsyncStorage + profiles.location
+├── hooks/
+│   ├── useSearch.ts             # Search results + filters (debounced supabase query)
+│   └── useHomeData.ts           # Home-screen data: useProperties, useBanners, useFavorites
 ├── utils/
+│   ├── filters.ts               # Filters/categories types + parse/serialize/format helpers
 │   ├── supabase.ts              # Supabase client (configured with AsyncStorage)
 │   ├── propertyHelpers.ts       # Denormalize Supabase embedded category/image rows
 │   ├── uploadImage.ts           # expo-image-picker + Supabase Storage upload
