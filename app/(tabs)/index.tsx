@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
-import Animated, { FadeInDown, FadeInRight, FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 
 import { Input } from '@/components/ui/Input';
 import { PropertyCard } from '@/components/property/PropertyCard';
@@ -31,8 +31,8 @@ export default function HomeScreen() {
   const { data: banners, isLoading: bannersLoading } = useBanners();
   const { isFavorite, toggle } = useFavorites();
 
-  const featured = useMemo(() => (properties ?? []).filter((p) => p.featured), [properties]);
-  const standard = useMemo(() => (properties ?? []).filter((p) => !p.featured), [properties]);
+  const list = useMemo(() => properties ?? [], [properties]);
+  const featuredCount = useMemo(() => list.filter((p) => p.featured).length, [list]);
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {
@@ -51,7 +51,7 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.tint} />
         }
       >
-        <Animated.View entering={FadeInDown.delay(60)} style={styles.header}>
+        <Animated.View entering={FadeInDown.delay(40)} style={styles.header}>
           <TouchableOpacity
             style={styles.locationPill}
             onPress={() => router.push('/location-picker')}
@@ -106,28 +106,14 @@ export default function HomeScreen() {
           <CategoryTabs categories={CATEGORY_LABELS} activeCategory={activeTab} onSelect={setActiveTab} />
         </Animated.View>
 
-        {featured.length > 0 && (
-          <Animated.View entering={FadeIn.delay(280)} style={styles.featuredSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Featured</Text>
-              <Text style={styles.sectionCount}>{featured.length} properties</Text>
-            </View>
-
-            {featured.map((p, i) => (
-              <Animated.View key={p.id} entering={FadeInRight.delay(300 + i * 80)}>
-                <PropertyCard
-                  property={p}
-                  isFavorite={isFavorite(p.id)}
-                  onFavorite={() => toggle(p.id)}
-                />
-              </Animated.View>
-            ))}
-          </Animated.View>
-        )}
-
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{location ? `Near ${location.city}` : 'All listings'}</Text>
-          <Text style={styles.sectionCount}>{standard.length} properties</Text>
+          <Text style={styles.sectionTitle}>
+            {location ? `Properties in ${location.city}` : 'All listings'}
+          </Text>
+          <Text style={styles.sectionCount}>
+            {list.length} {list.length === 1 ? 'property' : 'properties'}
+            {featuredCount > 0 ? ` · ${featuredCount} featured` : ''}
+          </Text>
         </View>
 
         <View style={styles.grid}>
@@ -136,10 +122,10 @@ export default function HomeScreen() {
               <PropertyCardSkeleton />
               <PropertyCardSkeleton />
             </>
-          ) : standard.length === 0 ? (
+          ) : list.length === 0 ? (
             <EmptyResults theme={theme} hasLocation={!!location} category={activeTab} />
           ) : (
-            standard.map((p, i) => (
+            list.map((p, i) => (
               <Animated.View key={p.id} entering={FadeInDown.delay(80 + i * 50)}>
                 <PropertyCard
                   property={p}
@@ -277,9 +263,6 @@ const styles = StyleSheet.create((theme) => ({
     color: theme.colors.textSecondary,
   },
 
-  featuredSection: {
-    marginBottom: theme.spacing(1),
-  },
 
   grid: {
     gap: theme.spacing(0),
