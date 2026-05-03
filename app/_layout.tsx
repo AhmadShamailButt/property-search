@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { useUnistyles } from 'react-native-unistyles';
 
-import { AuthProvider, useAuth } from '@/contexts/auth-context';
+import { AuthProvider, useAuth, isAdminRole } from '@/contexts/auth-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -16,24 +16,32 @@ export const unstable_settings = {
 };
 
 function RootNavigator() {
-  const { session, isLoading } = useAuth();
+  const { session, profile, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const { rt } = useUnistyles();
 
   useEffect(() => {
     if (isLoading) return;
-
     SplashScreen.hideAsync();
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const group = segments[0];
 
-    if (!session && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
-      router.replace('/(tabs)');
+    if (!session) {
+      if (group !== '(auth)') router.replace('/(auth)/login');
+      return;
     }
-  }, [session, isLoading, segments]);
+    if (!profile) return;
+
+    const isAdmin = isAdminRole(profile.role);
+    const home = isAdmin ? '/admin' : '/(tabs)';
+    const wrongGroup =
+      group === '(auth)' ||
+      (isAdmin && group === '(tabs)') ||
+      (!isAdmin && group === 'admin');
+
+    if (wrongGroup) router.replace(home);
+  }, [session, profile, isLoading, segments]);
 
   const isDark = rt.themeName === 'dark';
 
