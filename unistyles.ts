@@ -1,3 +1,4 @@
+import { Appearance } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { Colors } from './constants/colors';
 
@@ -79,5 +80,7 @@ declare module 'react-native-unistyles' {
 StyleSheet.configure({
   themes: { light: lightTheme, dark: darkTheme },
   breakpoints,
-  settings: { adaptiveThemes: true },
+  settings: {
+    initialTheme: Appearance.getColorScheme() === 'dark' ? 'dark' : 'light',
+  },
 });
