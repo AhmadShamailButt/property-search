@@ -8,6 +8,7 @@ import { supabase } from '@/utils/supabase';
 import { formatArea } from '@/utils/filters';
 import { useAuth } from '@/contexts/auth-context';
 import { findOrCreateConversation } from '@/utils/conversations';
+import { useFavorites } from '@/hooks/useHomeData';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';
@@ -61,7 +62,8 @@ export default function PropertyDetailScreen() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'Description' | 'Features' | 'Location'>('Description');
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isFavorite: isFavoriteFn, toggle: toggleFavorite } = useFavorites();
+  const isFavorite = property ? isFavoriteFn(property.id) : false;
 
   useEffect(() => {
     let cancelled = false;
@@ -181,7 +183,7 @@ export default function PropertyDetailScreen() {
               <TouchableOpacity style={styles.iconBtn}>
                 <Feather name="share-2" size={20} color={theme.colors.onImage} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconBtn} onPress={() => setIsFavorite(!isFavorite)}>
+              <TouchableOpacity style={styles.iconBtn} onPress={() => property && toggleFavorite(property.id)}>
                 <Feather name="heart" size={22} color={isFavorite ? theme.colors.accent : theme.colors.onImage} />
               </TouchableOpacity>
             </View>

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { type Session, type User } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import { supabase } from '@/utils/supabase';
@@ -136,6 +136,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const confirmSignOut = () => {
+    // Native Alert.alert is reliable on iOS/Android. On web, react-native-web's
+    // Alert polyfill is dialog-less in some setups, so fall back to the
+    // browser's native confirm dialog there.
+    if (Platform.OS === 'web') {
+      if (typeof window !== 'undefined' && window.confirm('Sign out? You will need to log in again to continue.')) {
+        void signOut();
+      }
+      return;
+    }
     Alert.alert('Sign out?', 'You will need to log in again to continue.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: () => signOut() },

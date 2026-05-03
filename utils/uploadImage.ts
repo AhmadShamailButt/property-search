@@ -34,6 +34,26 @@ export async function pickImageFromLibrary(): Promise<PickedImage | null> {
 }
 
 export async function uploadPropertyImage(picked: PickedImage, ownerId: string): Promise<string> {
+  return uploadImageToBucket(picked, PROPERTY_BUCKET, ownerId);
+}
+
+const BANNER_BUCKET = 'banner-images';
+
+export async function uploadBannerImage(picked: PickedImage, adminId: string): Promise<string> {
+  return uploadImageToBucket(picked, BANNER_BUCKET, adminId);
+}
+
+/**
+ * Upload a picked image to the given Supabase Storage bucket. Object path is
+ * `<ownerId>/<timestamp>-<rand>.<ext>` so storage RLS that gates by the first
+ * folder segment continues to work for the property bucket; the banner bucket
+ * gates by admin role instead.
+ */
+async function uploadImageToBucket(
+  picked: PickedImage,
+  bucket: string,
+  ownerId: string,
+): Promise<string> {
   const ext = extFromUri(picked.uri, picked.mimeType?.split('/')[1] ?? 'jpg');
   const contentType = picked.mimeType ?? contentTypeFor(ext);
   const path = `${ownerId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
@@ -42,10 +62,10 @@ export async function uploadPropertyImage(picked: PickedImage, ownerId: string):
   const arrayBuffer = await response.arrayBuffer();
 
   const { error } = await supabase.storage
-    .from(PROPERTY_BUCKET)
+    .from(bucket)
     .upload(path, arrayBuffer, { contentType, upsert: false });
   if (error) throw new Error(error.message);
 
-  const { data } = supabase.storage.from(PROPERTY_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
 }
