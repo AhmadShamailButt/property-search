@@ -154,7 +154,11 @@ export async function embedText(
   return vec;
 }
 
-export type ChatHistory = { role: "user" | "assistant"; text: string }[];
+export type ChatHistory = {
+  role: "user" | "assistant";
+  text: string;
+  property_ids?: string[];
+}[];
 
 export async function generateChat(
   systemPrompt: string,

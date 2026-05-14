@@ -27,17 +27,35 @@ export function useHomeChat() {
     if (!trimmed || pending) return;
 
     const userMsg: ChatMessage = { id: nextId(), role: 'user', text: trimmed };
-    // Snapshot last 10 *prior* messages as Vertex history.
+    // Snapshot last 10 *prior* messages as Vertex history. Assistant turns
+    // carry the property ids they showed so the server can answer follow-ups
+    // like "which of the above is cheapest" against the actual prior list.
     const history = messages
       .filter((m) => m.id !== 'intro')
       .slice(-10)
-      .map((m) => ({ role: m.role, text: m.text }));
+      .map((m) => ({
+        role: m.role,
+        text: m.text,
+        property_ids: m.properties?.map((p) => String(p.id)),
+      }));
+    console.log('[useHomeChat] sending', {
+      message: trimmed,
+      historyLen: history.length,
+      historyRoles: history.map((h) => h.role),
+      historyPriorIdCounts: history.map((h) => h.property_ids?.length ?? 0),
+    });
     setMessages((prev) => [...prev, userMsg]);
     setPending(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('chat-search', {
         body: { message: trimmed, history },
+      });
+      console.log('[useHomeChat] received', {
+        error,
+        replyLen: data?.reply?.length,
+        propertyCount: data?.properties?.length,
+        propertyIds: data?.properties?.map((p: { id: string }) => p.id),
       });
       if (error) throw error;
 
