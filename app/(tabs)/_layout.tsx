@@ -5,36 +5,40 @@ import { Feather } from '@expo/vector-icons';
 import { View } from 'react-native';
 
 export default function TabLayout() {
-  const { theme } = useUnistyles();
+  const { theme, rt } = useUnistyles();
+  const themeName = rt.themeName;
 
   return (
     <Tabs
+      key={themeName}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
           backgroundColor: theme.colors.card,
-          borderTopWidth: 0,
+          borderTopWidth: 1,
+          borderTopColor: theme.colors.border,
           elevation: 20,
           shadowColor: theme.colors.shadowStrong,
-          shadowOffset: { width: 0, height: -10 },
-          shadowOpacity: 0.1,
-          shadowRadius: 20,
-          height: 80,
-          paddingBottom: 20,
-          paddingTop: 10,
-          position: 'absolute',
-          bottom: 20,
-          left: 20,
-          right: 20,
-          borderRadius: theme.radii.round,
+          shadowOffset: { width: 0, height: -8 },
+          shadowOpacity: 0.12,
+          shadowRadius: 16,
+          height: 72,
+          paddingBottom: 10,
+          paddingTop: 8,
         },
         tabBarActiveTintColor: theme.colors.tint,
         tabBarInactiveTintColor: theme.colors.tabIconDefault,
-        tabBarShowLabel: false,
+        tabBarShowLabel: true,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 2,
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
+          title: 'Home',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon name="home" color={color} focused={focused} />
           ),
@@ -43,22 +47,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name="favorites"
         options={{
+          title: 'Favorites',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon name="heart" color={color} focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="chat"
-        options={{
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="message-circle" color={color} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="profile"
         options={{
+          title: 'Profile',
           tabBarIcon: ({ color, focused }) => (
             <TabIcon name="user" color={color} focused={focused} />
           ),
@@ -68,24 +66,27 @@ export default function TabLayout() {
   );
 }
 
-function TabIcon({ name, color, focused }: { name: any; color: string; focused: boolean }) {
+type FeatherName = React.ComponentProps<typeof Feather>['name'];
+
+function TabIcon({ name, color, focused }: { name: FeatherName; color: string; focused: boolean }) {
   const { theme } = useUnistyles();
-  
+
   return (
     <View style={[
-      styles.iconContainer, 
-      focused && { backgroundColor: theme.colors.primaryLight }
+      styles.iconContainer,
+      focused && { backgroundColor: theme.colors.tabActiveBg },
     ]}>
-      <Feather name={name} size={24} color={color} />
+      <Feather name={name} size={22} color={color} />
     </View>
   );
 }
 
 const styles = StyleSheet.create((theme) => ({
   iconContainer: {
-    padding: 12,
+    width: 40,
+    height: 32,
     borderRadius: theme.radii.round,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
 }));

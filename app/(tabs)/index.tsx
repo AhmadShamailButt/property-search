@@ -15,6 +15,7 @@ import { useLocation } from '@/contexts/location-context';
 import { useProperties, useBanners, useFavorites } from '@/hooks/useHomeData';
 import { CATEGORIES } from '@/utils/filters';
 import { useAuth } from '@/contexts/auth-context';
+import { ChatFAB } from '@/components/chat/ChatFAB';
 
 const CATEGORY_LABELS = CATEGORIES.map((c) => c.label);
 const HORIZONTAL_PADDING = 20;
@@ -66,7 +67,7 @@ export default function HomeScreen() {
               <Text style={styles.locationLabel}>Current location</Text>
               <View style={styles.locationRow}>
                 <Text style={styles.locationText} numberOfLines={1}>
-                  {location ? `${location.city}${location.state ? `, ${location.state}` : ''}` : 'Set location'}
+                  {location ? `${location.city}${location.state ? `, ${location.state}` : ''}` : 'All cities'}
                 </Text>
                 <Feather name="chevron-down" size={16} color={theme.colors.text} />
               </View>
@@ -74,10 +75,6 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.85}>
-              <Feather name="bell" size={20} color={theme.colors.text} />
-              <View style={styles.badge} />
-            </TouchableOpacity>
             <TouchableOpacity style={styles.notificationBtn} activeOpacity={0.85} onPress={confirmSignOut}>
               <Feather name="log-out" size={20} color={theme.colors.text} />
             </TouchableOpacity>
@@ -114,10 +111,10 @@ export default function HomeScreen() {
         </Animated.View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
+          <Text style={styles.sectionTitle} numberOfLines={1} ellipsizeMode="tail">
             {location ? `Properties in ${location.city}` : 'All listings'}
           </Text>
-          <Text style={styles.sectionCount}>
+          <Text style={styles.sectionCount} numberOfLines={1}>
             {list.length} {list.length === 1 ? 'property' : 'properties'}
             {featuredCount > 0 ? ` · ${featuredCount} featured` : ''}
           </Text>
@@ -145,6 +142,7 @@ export default function HomeScreen() {
         </View>
 
       </ScrollView>
+      <ChatFAB />
     </SafeAreaView>
   );
 }
@@ -156,10 +154,10 @@ const EmptyResults = ({ theme, hasLocation, category }: { theme: any; hasLocatio
     </View>
     <Text style={styles.emptyTitle}>No properties yet</Text>
     <Text style={styles.emptySub}>
-      {!hasLocation
-        ? 'Set your location to see what’s nearby.'
-        : category !== 'All'
+      {category !== 'All'
         ? `No ${category.toLowerCase()} listings here yet — try a different category.`
+        : hasLocation
+        ? 'No listings in this city yet — try switching to All cities.'
         : 'Pull to refresh, or check back soon.'}
     </Text>
   </View>
@@ -226,16 +224,6 @@ const styles = StyleSheet.create((theme) => ({
     borderWidth: 1,
     borderColor: theme.colors.border,
   },
-  badge: {
-    position: 'absolute',
-    top: 10,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.accent,
-  },
-
   searchSection: {
     flexDirection: 'row',
     gap: theme.spacing(1.5),
@@ -265,14 +253,17 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: 'flex-end',
     marginBottom: theme.spacing(1.5),
     paddingHorizontal: 2,
+    gap: theme.spacing(1),
   },
   sectionTitle: {
     ...theme.typography.h2,
     color: theme.colors.text,
+    flexShrink: 1,
   },
   sectionCount: {
     ...theme.typography.caption,
     color: theme.colors.textSecondary,
+    flexShrink: 0,
   },
 
 

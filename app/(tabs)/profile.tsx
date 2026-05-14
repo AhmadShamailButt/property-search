@@ -3,18 +3,23 @@ import { View, Text, Switch, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, UnistylesRuntime , useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 import { useAuth } from '@/contexts/auth-context';
 
 export default function ProfileScreen() {
-  const { theme } = useUnistyles();
-  const { user, confirmSignOut } = useAuth();
+  const { theme, rt } = useUnistyles();
+  const { user, profile, confirmSignOut } = useAuth();
 
-  const isDark = UnistylesRuntime.themeName === 'dark';
+  const isDark = rt.themeName === 'dark';
 
   const toggleTheme = () => {
     UnistylesRuntime.setTheme(isDark ? 'light' : 'dark');
   };
+
+  const goToEdit = () => router.push('/profile/edit');
+  const displayName = profile?.full_name ?? user?.user_metadata?.full_name ?? 'Welcome';
+  const avatarUrl = profile?.avatar_url ?? null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -23,13 +28,19 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.profileSection}>
-        <View style={styles.avatarContainer}>
-          <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }} style={styles.avatar} />
-          <TouchableOpacity style={styles.editBadge}>
+        <TouchableOpacity style={styles.avatarContainer} onPress={goToEdit} activeOpacity={0.85}>
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarPlaceholder]}>
+              <Feather name="user" size={36} color={theme.colors.icon} />
+            </View>
+          )}
+          <View style={styles.editBadge}>
             <Feather name="edit-2" size={12} color={theme.colors.textInverse} />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.name}>{user?.user_metadata?.full_name ?? 'Welcome'}</Text>
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.name}>{displayName}</Text>
         <Text style={styles.email}>{user?.email ?? ''}</Text>
       </View>
 
@@ -42,7 +53,11 @@ export default function ProfileScreen() {
           <Switch value={isDark} onValueChange={toggleTheme} trackColor={{ false: theme.colors.border, true: theme.colors.tint }} />
         </View>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => router.push('/profile/edit')}
+          disabled={!user}
+        >
           <View style={styles.menuIconContainer}>
             <Feather name="user" size={20} color={theme.colors.text} />
           </View>
@@ -68,6 +83,7 @@ const styles = StyleSheet.create((theme) => ({
   profileSection: { alignItems: 'center', paddingVertical: theme.spacing(4) },
   avatarContainer: { position: 'relative', marginBottom: theme.spacing(2) },
   avatar: { width: 100, height: 100, borderRadius: theme.radii.round },
+  avatarPlaceholder: { backgroundColor: theme.colors.surface, borderWidth: 1, borderColor: theme.colors.border, justifyContent: 'center', alignItems: 'center' },
   editBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: theme.colors.tint, width: 28, height: 28, borderRadius: theme.radii.round, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: theme.colors.background },
   name: { ...theme.typography.h2, color: theme.colors.text },
   email: { ...theme.typography.body, color: theme.colors.textSecondary },

@@ -80,13 +80,17 @@ export const BannerCarousel = ({
         ))}
       </ScrollView>
 
-      <View style={[styles.dotsRow, { height: 18 }]}>
-        {items.map((item, i) => (
-          <Pressable key={item.id} onPress={() => goTo(i)} hitSlop={6}>
-            <Dot index={i} progress={progress} />
-          </Pressable>
-        ))}
-      </View>
+      {items.length > 1 && (
+        <View pointerEvents="box-none" style={styles.dotsOverlay}>
+          <View style={styles.dotsPill}>
+            {items.map((item, i) => (
+              <Pressable key={item.id} onPress={() => goTo(i)} hitSlop={8}>
+                <Dot index={i} progress={progress} />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -151,13 +155,13 @@ const Dot = ({ index, progress }: { index: number; progress: SharedValue<number>
     const w = interpolate(
       progress.value,
       [index - 1, index, index + 1],
-      [6, 22, 6],
+      [6, 18, 6],
       Extrapolation.CLAMP,
     );
     const op = interpolate(
       progress.value,
       [index - 1, index, index + 1],
-      [0.35, 1, 0.35],
+      [0.55, 1, 0.55],
       Extrapolation.CLAMP,
     );
     return { width: w, opacity: op };
@@ -191,16 +195,25 @@ const styles = StyleSheet.create((theme) => ({
     ...theme.typography.body,
     color: theme.colors.onImageMuted,
   },
-  dotsRow: {
+  dotsOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: theme.spacing(1.25),
+    alignItems: 'center',
+  },
+  dotsPill: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
-    marginTop: theme.spacing(1.5),
+    paddingHorizontal: theme.spacing(1.25),
+    paddingVertical: theme.spacing(0.75),
+    borderRadius: theme.radii.round,
+    backgroundColor: 'rgba(0,0,0,0.32)',
   },
   dot: {
-    height: 6,
+    height: 5,
     borderRadius: 3,
-    backgroundColor: theme.colors.tint,
+    backgroundColor: theme.colors.onImage,
   },
 }));

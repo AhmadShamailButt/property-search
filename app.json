@@ -44,7 +44,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Property Search to access your photos so you can add images to listings."
+          "photosPermission": "Allow Property Search to access your photos so you can add images to listings.",
+          "cameraPermission": "Allow Property Search to use your camera so you can take a photo for your profile or listing."
         }
       ]
     ],
