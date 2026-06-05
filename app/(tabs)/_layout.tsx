@@ -4,11 +4,14 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
 import { View } from 'react-native';
 
+import { ChatFAB } from '@/components/chat/ChatFAB';
+
 export default function TabLayout() {
   const { theme, rt } = useUnistyles();
   const themeName = rt.themeName;
 
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       key={themeName}
       screenOptions={{
@@ -63,6 +66,8 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    <ChatFAB />
+    </View>
   );
 }
 

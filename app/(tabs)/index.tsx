@@ -15,7 +15,6 @@ import { useLocation } from '@/contexts/location-context';
 import { useProperties, useBanners, useFavorites } from '@/hooks/useHomeData';
 import { CATEGORIES } from '@/utils/filters';
 import { useAuth } from '@/contexts/auth-context';
-import { ChatFAB } from '@/components/chat/ChatFAB';
 
 const CATEGORY_LABELS = CATEGORIES.map((c) => c.label);
 const HORIZONTAL_PADDING = 20;
@@ -142,7 +141,6 @@ export default function HomeScreen() {
         </View>
 
       </ScrollView>
-      <ChatFAB />
     </SafeAreaView>
   );
 }

@@ -31,7 +31,8 @@ const styles = StyleSheet.create((theme) => ({
   wrap: {
     position: 'absolute',
     right: theme.spacing(2.5),
-    bottom: theme.spacing(12),
+    bottom: 88,
+    zIndex: 100,
   },
   fab: {
     width: 56,
