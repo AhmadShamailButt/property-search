@@ -11,9 +11,14 @@ import { useLocation, SUPPORTED_CITIES, formatLocation, type AppLocation } from 
 
 export default function LocationPickerScreen() {
   const { theme } = useUnistyles();
-  const { location, setLocation } = useLocation();
+  const { location, setLocation, clearLocation } = useLocation();
   const router = useRouter();
   const [query, setQuery] = useState('');
+
+  const handleSelectAll = async () => {
+    await clearLocation();
+    router.back();
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -61,6 +66,26 @@ export default function LocationPickerScreen() {
         <Animated.View entering={FadeIn.duration(220)} style={styles.sectionLabelRow}>
           <Feather name="map-pin" size={14} color={theme.colors.textSecondary} />
           <Text style={styles.sectionLabel}>Popular cities</Text>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(40)}>
+          <Pressable
+            onPress={handleSelectAll}
+            style={({ pressed }) => [styles.row, !location && styles.rowSelected, pressed && styles.rowPressed]}
+          >
+            <View style={[styles.rowIcon, !location && styles.rowIconActive]}>
+              <Feather
+                name="globe"
+                size={18}
+                color={!location ? theme.colors.textInverse : theme.colors.textSecondary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rowTitle}>All cities</Text>
+              <Text style={styles.rowSub}>Show listings from everywhere</Text>
+            </View>
+            {!location && <Feather name="check" size={20} color={theme.colors.tint} />}
+          </Pressable>
         </Animated.View>
 
         {filtered.length === 0 ? (

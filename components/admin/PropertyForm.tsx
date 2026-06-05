@@ -29,8 +29,6 @@ export type PropertyFormValues = {
   bathrooms: string;
   living_rooms: string;
   kitchens: string;
-  latitude: string;
-  longitude: string;
   building_type: string;
   has_garage: boolean;
   has_garden: boolean;
@@ -59,8 +57,6 @@ export const EMPTY_FORM: PropertyFormValues = {
   bathrooms: '',
   living_rooms: '',
   kitchens: '',
-  latitude: '',
-  longitude: '',
   building_type: '',
   has_garage: false,
   has_garden: false,
@@ -200,8 +196,6 @@ export function PropertyForm({ mode, propertyId, initialValues, initialImages, t
       bathrooms: intOrNull(values.bathrooms) ?? 0,
       living_rooms: intOrNull(values.living_rooms) ?? 0,
       kitchens: intOrNull(values.kitchens) ?? 0,
-      latitude: numOrNull(values.latitude),
-      longitude: numOrNull(values.longitude),
       building_type: values.building_type.trim() || null,
       has_garage: values.has_garage,
       has_garden: values.has_garden,
@@ -294,10 +288,6 @@ export function PropertyForm({ mode, propertyId, initialValues, initialImages, t
             <View style={styles.flex1}><Input label="State" value={values.state} onChangeText={(v) => set('state', v)} /></View>
           </View>
           <Input label="Country" value={values.country} onChangeText={(v) => set('country', v)} />
-          <View style={styles.row2}>
-            <View style={styles.flex1}><Input label="Latitude" value={values.latitude} onChangeText={(v) => set('latitude', v)} keyboardType="numeric" /></View>
-            <View style={styles.flex1}><Input label="Longitude" value={values.longitude} onChangeText={(v) => set('longitude', v)} keyboardType="numeric" /></View>
-          </View>
         </Section>
 
         <Section title="Pricing & size" icon="dollar-sign">

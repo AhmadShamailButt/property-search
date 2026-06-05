@@ -137,11 +137,15 @@ export const PropertyCard = ({ property, onFavorite, isFavorite }: PropertyCardP
                 </View>
               )}
             </View>
-            <Text style={styles.title} numberOfLines={1}>{property.title}</Text>
-            <View style={styles.addressRow}>
-              <Feather name="map-pin" size={12} color={theme.colors.textMuted} />
-              <Text style={styles.address} numberOfLines={1}>{property.address}</Text>
-            </View>
+            {!!property.title?.trim() && (
+              <Text style={styles.title} numberOfLines={1}>{property.title}</Text>
+            )}
+            {!!property.address?.trim() && (
+              <View style={styles.addressRow}>
+                <Feather name="map-pin" size={12} color={theme.colors.textMuted} />
+                <Text style={styles.address} numberOfLines={1}>{property.address}</Text>
+              </View>
+            )}
           </View>
         </Animated.View>
     </Pressable>

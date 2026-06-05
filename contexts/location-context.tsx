@@ -1,9 +1,9 @@
-import React, { createContext, useCallback, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/utils/supabase';
 import { useAuth } from '@/contexts/auth-context';
 
-const STORAGE_KEY = '@property-search/current-location';
+const STORAGE_KEY = '@property-search/current-location/v2';
 
 export type AppLocation = {
   city: string;
@@ -26,6 +26,7 @@ type LocationContextType = {
   location: AppLocation | null;
   isLoading: boolean;
   setLocation: (loc: AppLocation) => Promise<void>;
+  clearLocation: () => Promise<void>;
 };
 
 const LocationContext = createContext<LocationContextType | null>(null);
@@ -58,16 +59,15 @@ export function LocationProvider({ children }: PropsWithChildren) {
             .select('location')
             .eq('id', user.id)
             .maybeSingle();
-          if (!cancelled && data?.location) {
+          if (cancelled) return;
+          if (data?.location) {
             const parts = String(data.location).split(',').map((s) => s.trim());
             const parsed: AppLocation = { city: parts[0], state: parts[1], country: parts[2] };
             setLocationState(parsed);
             await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-          } else if (!cancelled) {
-            setLocationState(SUPPORTED_CITIES[0]);
           }
-        } else if (!cancelled) {
-          setLocationState(SUPPORTED_CITIES[0]);
+          // No cached value AND no profile location → state is already null,
+          // skip the redundant setState to avoid notifying consumers.
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -84,8 +84,21 @@ export function LocationProvider({ children }: PropsWithChildren) {
     }
   }, [user]);
 
+  const clearLocation = useCallback(async () => {
+    setLocationState(null);
+    await AsyncStorage.removeItem(STORAGE_KEY);
+    if (user) {
+      await supabase.from('profiles').update({ location: null }).eq('id', user.id);
+    }
+  }, [user]);
+
+  const value = useMemo(
+    () => ({ location, isLoading, setLocation, clearLocation }),
+    [location, isLoading, setLocation, clearLocation],
+  );
+
   return (
-    <LocationContext.Provider value={{ location, isLoading, setLocation }}>
+    <LocationContext.Provider value={value}>
       {children}
     </LocationContext.Provider>
   );

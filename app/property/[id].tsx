@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform, Linking, Pressable, Image, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, useWindowDimensions, ActivityIndicator, Platform, Linking, Image, Share } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Feather } from '@expo/vector-icons';
-import { router, Link, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { supabase } from '@/utils/supabase';
 import { formatArea } from '@/utils/filters';
 import { useAuth } from '@/contexts/auth-context';
-import { findOrCreateConversation } from '@/utils/conversations';
 import { useFavorites } from '@/hooks/useHomeData';
+import { formatPropertyPrice } from '@/utils/propertyHelpers';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';
@@ -35,14 +35,10 @@ type PropertyDetail = {
   ai_score: number | null;
   ai_score_summary: string | null;
   created_at: string;
-  latitude: number | null;
-  longitude: number | null;
   categories: { name: string } | { name: string }[] | null;
   property_images: { image_url: string; is_hero: boolean | null; sort_order: number | null }[] | null;
-  profiles: { id: string; full_name: string; avatar_url: string | null; phone: string | null; created_at: string } | null;
+  profiles: { id: string; full_name: string; avatar_url: string | null; phone: string | null } | null;
 };
-
-const formatFullPrice = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`;
 
 const formatRelativeDays = (iso: string): string => {
   const days = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000));
@@ -60,7 +56,7 @@ export default function PropertyDetailScreen() {
   const [property, setProperty] = useState<PropertyDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'Description' | 'Features' | 'Location'>('Description');
+  const [activeTab, setActiveTab] = useState<'Description' | 'Features'>('Description');
   const [galleryIndex, setGalleryIndex] = useState(0);
   const { isFavorite: isFavoriteFn, toggle: toggleFavorite } = useFavorites();
   const isFavorite = property ? isFavoriteFn(property.id) : false;
@@ -76,10 +72,10 @@ export default function PropertyDetailScreen() {
           id, title, description, address, city, state, price, year_built,
           living_area_sqft, bedrooms, bathrooms, living_rooms, kitchens,
           has_garage, has_garden, building_type, is_featured, is_active,
-          ai_score, ai_score_summary, created_at, latitude, longitude,
+          ai_score, ai_score_summary, created_at,
           categories(name),
           property_images(image_url, is_hero, sort_order),
-          profiles!properties_owner_id_fkey(id, full_name, avatar_url, phone, created_at)
+          profiles!properties_owner_id_fkey(id, full_name, avatar_url, phone)
         `)
         .eq('id', id)
         .single();
@@ -124,7 +120,7 @@ export default function PropertyDetailScreen() {
   const category = Array.isArray(property.categories) ? property.categories[0]?.name : property.categories?.name;
   const owner = property.profiles;
   const pricePerSqft = property.living_area_sqft && property.living_area_sqft > 0
-    ? `${formatFullPrice(property.price / property.living_area_sqft)} / sqft`
+    ? `${formatPropertyPrice(property.price / property.living_area_sqft)} / sqft`
     : null;
 
   const keyStats: { icon: keyof typeof Feather.glyphMap; label: string; value: string }[] = [];
@@ -150,7 +146,20 @@ export default function PropertyDetailScreen() {
   ];
 
   const fullAddress = [property.address, property.city, property.state].filter(Boolean).join(', ');
-  const ownerSinceYear = owner ? new Date(owner.created_at).getFullYear() : null;
+
+  const handleShare = async () => {
+    if (!property) return;
+    const priceLabel = formatPropertyPrice(property.price);
+    const where = fullAddress || property.city || '';
+    const message = where
+      ? `${property.title} — ${priceLabel}\n${where}`
+      : `${property.title} — ${priceLabel}`;
+    try {
+      await Share.share({ title: property.title, message });
+    } catch {
+      /* dismissed */
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -180,7 +189,7 @@ export default function PropertyDetailScreen() {
               <Feather name="arrow-left" size={24} color={theme.colors.onImage} />
             </TouchableOpacity>
             <View style={styles.heroOverlayRight}>
-              <TouchableOpacity style={styles.iconBtn}>
+              <TouchableOpacity style={styles.iconBtn} onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share this listing">
                 <Feather name="share-2" size={20} color={theme.colors.onImage} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconBtn} onPress={() => property && toggleFavorite(property.id)}>
@@ -207,7 +216,7 @@ export default function PropertyDetailScreen() {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.price}>{formatFullPrice(property.price)}</Text>
+              <Text style={styles.price}>{formatPropertyPrice(property.price)}</Text>
               {pricePerSqft && <Text style={styles.pricePerSqft}>{pricePerSqft}</Text>}
             </View>
             {property.ai_score != null && (
@@ -249,7 +258,7 @@ export default function PropertyDetailScreen() {
           )}
 
           <View style={styles.tabContainer}>
-            {(['Description', 'Features', 'Location'] as const).map((tab) => (
+            {(['Description', 'Features'] as const).map((tab) => (
               <TouchableOpacity
                 key={tab}
                 style={[styles.tab, activeTab === tab && styles.activeTab]}
@@ -262,29 +271,6 @@ export default function PropertyDetailScreen() {
 
           {activeTab === 'Description' && (
             <View style={styles.tabContent}>
-              {owner && (
-                <Pressable
-                  style={({ pressed }) => [styles.ownerCard, pressed && styles.ownerCardPressed]}
-                  onPress={() => router.push({ pathname: '/profile/[id]', params: { id: owner.id } })}
-                  accessibilityRole="button"
-                  accessibilityLabel={`View ${owner.full_name}'s profile`}
-                >
-                  {owner.avatar_url ? (
-                    <Image source={{ uri: owner.avatar_url }} style={styles.ownerAvatar} resizeMode="cover" />
-                  ) : (
-                    <View style={[styles.ownerAvatar, styles.center, { backgroundColor: theme.colors.surface }]}>
-                      <Feather name="user" size={24} color={theme.colors.icon} />
-                    </View>
-                  )}
-                  <View style={styles.ownerInfo}>
-                    <Text style={styles.ownerName}>{owner.full_name}</Text>
-                    {ownerSinceYear && <Text style={styles.ownerMember}>Member since {ownerSinceYear}</Text>}
-                    <Text style={styles.ownerLink}>View profile</Text>
-                  </View>
-                  <Feather name="chevron-right" size={22} color={theme.colors.icon} />
-                </Pressable>
-              )}
-
               <View>
                 <Text style={styles.sectionTitle}>About this property</Text>
                 <Text style={styles.description}>
@@ -298,19 +284,6 @@ export default function PropertyDetailScreen() {
                   <Text style={styles.description}>{property.ai_score_summary}</Text>
                 </View>
               )}
-
-              <Link href={`/property/${property.id}/ai-chat`} asChild>
-                <TouchableOpacity style={styles.ragPromo}>
-                  <View style={styles.ragPromoIcon}>
-                    <Feather name="message-square" size={24} color={theme.colors.tint} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.ragPromoTitle}>Ask AI about this property</Text>
-                    <Text style={styles.ragPromoSub}>Get instant answers from our AI model</Text>
-                  </View>
-                  <Feather name="chevron-right" size={24} color={theme.colors.icon} />
-                </TouchableOpacity>
-              </Link>
             </View>
           )}
 
@@ -334,23 +307,6 @@ export default function PropertyDetailScreen() {
             </View>
           )}
 
-          {activeTab === 'Location' && (
-            <View style={styles.tabContent}>
-              {property.latitude != null && property.longitude != null ? (
-                <MapPreview lat={property.latitude} lng={property.longitude} label={property.title} />
-              ) : (
-                <View style={styles.mapPlaceholder}>
-                  <Feather name="map" size={48} color={theme.colors.border} />
-                  <Text style={styles.mapText}>Coordinates not provided</Text>
-                </View>
-              )}
-
-              <View>
-                <Text style={styles.sectionTitle}>Address</Text>
-                <Text style={styles.description}>{fullAddress}</Text>
-              </View>
-            </View>
-          )}
         </View>
       </ScrollView>
 
@@ -373,10 +329,9 @@ function PropertyBottomBar({
   propertyId: string;
 }) {
   const { theme } = useUnistyles();
-  const [isOpeningChat, setIsOpeningChat] = useState(false);
 
   const isOwnListing = !!currentUserId && !!owner && currentUserId === owner.id;
-  const canCall = !isOwnListing && !!owner?.phone;
+  const canContact = !isOwnListing && !!owner?.phone;
 
   if (isOwnListing) {
     return (
@@ -390,71 +345,37 @@ function PropertyBottomBar({
   }
 
   const handleCall = () => {
-    if (!canCall || !owner?.phone) return;
+    if (!canContact || !owner?.phone) return;
     const phone = owner.phone;
-    const dial = () => Linking.openURL(`tel:${phone}`);
-
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm(`Call ${phone}?`)) {
-        dial();
-      }
-      return;
-    }
-
-    Alert.alert(
-      'Call owner',
-      `Call ${phone}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Call', onPress: dial },
-      ],
-      { cancelable: true },
-    );
+    Linking.openURL(`tel:${phone}`);
   };
 
-  const handleChat = async () => {
-    if (!currentUserId || !owner) return;
-    if (currentUserId === owner.id) return;
-    if (isOpeningChat) return;
-    setIsOpeningChat(true);
-    try {
-      const { id: conversationId } = await findOrCreateConversation({
-        searcherId: currentUserId,
-        ownerId: owner.id,
-        propertyId,
-      });
-      router.push({ pathname: '/conversation/[id]', params: { id: conversationId } });
-    } catch {
-      // helper logs the error; surface a non-blocking notice if needed
-    } finally {
-      setIsOpeningChat(false);
-    }
+  const handleMessage = () => {
+    if (!canContact || !owner?.phone) return;
+    const url = Platform.OS === 'ios' ? `sms:${owner.phone}` : `smsto:${owner.phone}`;
+    Linking.openURL(url);
   };
 
   return (
     <View style={styles.bottomBarWrap}>
-      {!canCall && (
+      {!canContact && (
         <Text style={styles.bottomBarHint}>Phone not provided</Text>
       )}
       <View style={styles.bottomBar}>
         <TouchableOpacity
-          style={styles.outlineBtn}
-          onPress={handleChat}
-          disabled={isOpeningChat || !currentUserId}
+          style={[styles.outlineBtn, !canContact && styles.outlineBtnDisabled]}
+          onPress={handleMessage}
+          disabled={!canContact}
           accessibilityRole="button"
-          accessibilityLabel="Chat with owner"
+          accessibilityLabel="Message owner"
         >
-          {isOpeningChat ? (
-            <ActivityIndicator size="small" color={theme.colors.text} />
-          ) : (
-            <Feather name="message-circle" size={20} color={theme.colors.text} />
-          )}
-          <Text style={styles.outlineBtnText}>Chat</Text>
+          <Feather name="message-circle" size={20} color={theme.colors.text} />
+          <Text style={styles.outlineBtnText}>Message</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.solidBtn, !canCall && styles.solidBtnDisabled]}
+          style={[styles.solidBtn, !canContact && styles.solidBtnDisabled]}
           onPress={handleCall}
-          disabled={!canCall}
+          disabled={!canContact}
           accessibilityRole="button"
           accessibilityLabel="Call owner"
         >
@@ -476,52 +397,6 @@ function HeroImage({ uri, width }: { uri: string; width: number }) {
       resizeMode="cover"
       onError={() => { if (src !== FALLBACK_IMAGE) setSrc(FALLBACK_IMAGE); }}
     />
-  );
-}
-
-function MapPreview({ lat, lng, label }: { lat: number; lng: number; label: string }) {
-  const { theme } = useUnistyles();
-  const offset = 0.006;
-  const bbox = `${lng - offset},${lat - offset},${lng + offset},${lat + offset}`;
-  const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
-  const externalUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
-  const staticUrl = `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=600x300&markers=${lat},${lng},red`;
-
-  const openExternal = () => Linking.openURL(externalUrl);
-
-  return (
-    <View>
-      <View style={styles.mapWrapper}>
-        {Platform.OS === 'web' ? (
-          // iframe is rendered only on web; native fallback below uses a static image
-          React.createElement('iframe' as unknown as React.ComponentType<Record<string, unknown>>, {
-            src: embedUrl,
-            title: `Map of ${label}`,
-            style: { width: '100%', height: '100%', border: 0 },
-            loading: 'lazy',
-            referrerPolicy: 'no-referrer-when-downgrade',
-          })
-        ) : (
-          <Image
-            source={{ uri: staticUrl }}
-            style={{ width: '100%', height: '100%' }}
-            resizeMode="cover"
-          />
-        )}
-
-        <View style={styles.mapPin} pointerEvents="none">
-          <View style={styles.mapPinInner}>
-            <Feather name="map-pin" size={14} color={theme.colors.textInverse} />
-          </View>
-        </View>
-      </View>
-
-      <Pressable style={styles.mapAction} onPress={openExternal}>
-        <Feather name="external-link" size={14} color={theme.colors.tint} />
-        <Text style={styles.mapActionText}>Open in OpenStreetMap</Text>
-        <Text style={styles.mapCoords}>{lat.toFixed(4)}, {lng.toFixed(4)}</Text>
-      </Pressable>
-    </View>
   );
 }
 
@@ -572,75 +447,12 @@ const styles = StyleSheet.create((theme) => ({
 
   sectionTitle: { ...theme.typography.h3, color: theme.colors.text, marginBottom: theme.spacing(1.5) },
 
-  ownerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, padding: theme.spacing(2), borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border, gap: theme.spacing(1.5) },
-  ownerCardPressed: { opacity: 0.7 },
-  ownerAvatar: { width: 56, height: 56, borderRadius: theme.radii.round },
-  ownerInfo: { flex: 1, gap: 2 },
-  ownerName: { ...theme.typography.label, color: theme.colors.text, fontWeight: '700' },
-  ownerMember: { ...theme.typography.caption, color: theme.colors.textMuted },
-  ownerLink: { ...theme.typography.caption, color: theme.colors.tint, fontWeight: '600', marginTop: theme.spacing(0.25) },
-
   description: { ...theme.typography.body, color: theme.colors.textSecondary, lineHeight: 24, marginBottom: theme.spacing(1.5) },
-
-  ragPromo: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.surface, padding: theme.spacing(2), borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.tint, gap: theme.spacing(2) },
-  ragPromoIcon: { width: 48, height: 48, borderRadius: theme.radii.round, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center' },
-  ragPromoTitle: { ...theme.typography.label, color: theme.colors.text, fontWeight: '600' },
-  ragPromoSub: { ...theme.typography.caption, color: theme.colors.textSecondary },
 
   featureGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing(1.5) },
   featureItem: { width: '47%', backgroundColor: theme.colors.surface, padding: theme.spacing(2), borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border },
   featureLabel: { ...theme.typography.caption, color: theme.colors.textSecondary, marginBottom: 4 },
   featureValue: { ...theme.typography.label, color: theme.colors.text, fontWeight: '600' },
-
-  mapPlaceholder: { height: 200, backgroundColor: theme.colors.surface, borderRadius: theme.radii.lg, borderWidth: 1, borderColor: theme.colors.border, justifyContent: 'center', alignItems: 'center', gap: theme.spacing(1) },
-  mapText: { ...theme.typography.label, color: theme.colors.textSecondary },
-  mapSub: { ...theme.typography.caption, color: theme.colors.textMuted },
-
-  mapWrapper: {
-    height: 240,
-    borderRadius: theme.radii.lg,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surface,
-    position: 'relative',
-  },
-  mapPin: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -36,
-    marginLeft: -16,
-    alignItems: 'center',
-  },
-  mapPinInner: {
-    width: 32,
-    height: 32,
-    borderRadius: theme.radii.round,
-    backgroundColor: theme.colors.accent,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: theme.colors.onImage,
-    ...theme.shadows.strong,
-  },
-  mapAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing(0.75),
-    marginTop: theme.spacing(1),
-    paddingHorizontal: theme.spacing(1),
-  },
-  mapActionText: {
-    ...theme.typography.label,
-    color: theme.colors.tint,
-    fontWeight: '600',
-  },
-  mapCoords: {
-    ...theme.typography.caption,
-    color: theme.colors.textMuted,
-    marginLeft: 'auto',
-  },
 
   bottomBarWrap: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.colors.card, borderTopWidth: 1, borderTopColor: theme.colors.border },
   bottomBar: { flexDirection: 'row', padding: theme.spacing(2), paddingBottom: 30, gap: theme.spacing(2) },
@@ -649,6 +461,7 @@ const styles = StyleSheet.create((theme) => ({
   outlineBtnText: { ...theme.typography.label, color: theme.colors.text, fontWeight: '600' },
   solidBtn: { flex: 1.5, flexDirection: 'row', height: 56, borderRadius: theme.radii.round, backgroundColor: theme.colors.tint, justifyContent: 'center', alignItems: 'center', gap: theme.spacing(1) },
   solidBtnDisabled: { opacity: 0.4 },
+  outlineBtnDisabled: { opacity: 0.4 },
   solidBtnText: { ...theme.typography.label, color: theme.colors.textInverse, fontWeight: '600' },
   ownListingNotice: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: theme.spacing(1), paddingVertical: theme.spacing(2), paddingBottom: theme.spacing(4) },
   ownListingText: { ...theme.typography.label, color: theme.colors.textSecondary },

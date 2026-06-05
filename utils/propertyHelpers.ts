@@ -45,8 +45,10 @@ export type PropertyRow = {
  */
 export const toProperty = (row: PropertyRow): Property => ({
   id: row.id,
-  title: row.title,
-  address: row.address,
+  title: (row.title ?? '').trim(),
+  address:
+    (row.address ?? '').trim() ||
+    [row.city, row.state].filter(Boolean).join(', '),
   price: formatPropertyPrice(row.price),
   type: getCategoryName(row.categories) || 'Property',
   featured: !!row.is_featured,

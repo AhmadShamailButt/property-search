@@ -13,6 +13,7 @@ import {
 import type { Property } from '@/components/property/PropertyCard';
 import { useAuth } from '@/contexts/auth-context';
 import { useSearchSession } from '@/contexts/search-session-context';
+import { toProperty, type PropertyRow } from '@/utils/propertyHelpers';
 
 const filtersAreDefault = (filters: FiltersState): boolean =>
   filters.category === DEFAULT_FILTERS.category &&
@@ -24,29 +25,6 @@ const filtersAreDefault = (filters: FiltersState): boolean =>
   filters.bathrooms === DEFAULT_FILTERS.bathrooms &&
   filters.sort === DEFAULT_FILTERS.sort &&
   filters.city === DEFAULT_FILTERS.city;
-
-type Row = {
-  id: string;
-  title: string;
-  address: string;
-  price: number;
-  is_featured: boolean | null;
-  categories: { name: string } | { name: string }[] | null;
-  property_images: { image_url: string }[] | null;
-};
-
-const formatRowAsProperty = (row: Row): Property => {
-  const cat = Array.isArray(row.categories) ? row.categories[0]?.name : row.categories?.name;
-  return {
-    id: row.id,
-    title: row.title,
-    address: row.address,
-    price: `$${Number(row.price).toLocaleString()}`,
-    type: cat ?? 'Property',
-    featured: !!row.is_featured,
-    image: row.property_images?.[0]?.image_url ?? '',
-  };
-};
 
 export const useSearch = (query: string) => {
   const router = useRouter();
@@ -81,11 +59,10 @@ export const useSearch = (query: string) => {
         let q = supabase
           .from('properties')
           .select(
-            `id, title, address, price, is_featured, ${categoryJoin}, property_images(image_url)`,
+            `id, title, address, price, is_featured, ${categoryJoin}, property_images(image_url, is_hero, sort_order)`,
             { count: 'exact' }
           )
-          .eq('is_active', true)
-          .eq('property_images.is_hero', true);
+          .eq('is_active', true);
 
         if (filters.category !== 'All') q = q.eq('categories.name', filters.category);
         if (filters.city) q = q.eq('city', filters.city);
@@ -110,7 +87,7 @@ export const useSearch = (query: string) => {
         const { data, error: err, count: total } = await q;
         if (requestId !== requestIdRef.current) return;
         if (err) throw err;
-        setResults((data ?? []).map((row) => formatRowAsProperty(row as unknown as Row)));
+        setResults((data ?? []).map((row) => toProperty(row as unknown as PropertyRow)));
         setCount(total ?? 0);
 
         // Log this settled search for analytics — skip pure idle landings

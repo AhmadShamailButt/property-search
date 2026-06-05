@@ -28,8 +28,6 @@ type DbProperty = {
   bathrooms: number | null;
   living_rooms: number | null;
   kitchens: number | null;
-  latitude: number | null;
-  longitude: number | null;
   building_type: string | null;
   has_garage: boolean | null;
   has_garden: boolean | null;
@@ -57,8 +55,6 @@ const toFormValues = (p: DbProperty): PropertyFormValues => ({
   bathrooms: str(p.bathrooms),
   living_rooms: str(p.living_rooms),
   kitchens: str(p.kitchens),
-  latitude: str(p.latitude),
-  longitude: str(p.longitude),
   building_type: p.building_type ?? '',
   has_garage: !!p.has_garage,
   has_garden: !!p.has_garden,
@@ -81,7 +77,7 @@ export default function AdminListingEditScreen() {
       const [{ data: property, error: pErr }, { data: imgs, error: iErr }] = await Promise.all([
         supabase
           .from('properties')
-          .select('id, title, description, address, city, state, country, category_id, price, year_built, living_area_sqft, bedrooms, bathrooms, living_rooms, kitchens, latitude, longitude, building_type, has_garage, has_garden, is_featured, is_active')
+          .select('id, title, description, address, city, state, country, category_id, price, year_built, living_area_sqft, bedrooms, bathrooms, living_rooms, kitchens, building_type, has_garage, has_garden, is_featured, is_active')
           .eq('id', id)
           .single(),
         supabase

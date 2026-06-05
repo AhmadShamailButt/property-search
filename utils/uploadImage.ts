@@ -18,20 +18,31 @@ const contentTypeFor = (ext: string): string => {
 
 export type PickedImage = { uri: string; mimeType?: string };
 
-export async function pickImageFromLibrary(): Promise<PickedImage | null> {
-  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+type Source = 'library' | 'camera';
+
+const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
+  mediaTypes: ['images'],
+  quality: 0.85,
+  allowsEditing: false,
+};
+
+async function pickImage(source: Source): Promise<PickedImage | null> {
+  const perm = source === 'camera'
+    ? await ImagePicker.requestCameraPermissionsAsync()
+    : await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
-    throw new Error('Photo library permission denied.');
+    throw new Error(source === 'camera' ? 'Camera permission denied.' : 'Photo library permission denied.');
   }
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.85,
-    allowsEditing: false,
-  });
+  const result = source === 'camera'
+    ? await ImagePicker.launchCameraAsync(PICKER_OPTIONS)
+    : await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS);
   if (result.canceled || !result.assets?.[0]) return null;
   const asset = result.assets[0];
   return { uri: asset.uri, mimeType: asset.mimeType };
 }
+
+export const pickImageFromLibrary = () => pickImage('library');
+export const captureImageFromCamera = () => pickImage('camera');
 
 export async function uploadPropertyImage(picked: PickedImage, ownerId: string): Promise<string> {
   return uploadImageToBucket(picked, PROPERTY_BUCKET, ownerId);
@@ -41,6 +52,12 @@ const BANNER_BUCKET = 'banner-images';
 
 export async function uploadBannerImage(picked: PickedImage, adminId: string): Promise<string> {
   return uploadImageToBucket(picked, BANNER_BUCKET, adminId);
+}
+
+const AVATAR_BUCKET = 'avatars';
+
+export async function uploadAvatarImage(picked: PickedImage, userId: string): Promise<string> {
+  return uploadImageToBucket(picked, AVATAR_BUCKET, userId);
 }
 
 /**

@@ -169,7 +169,7 @@ export default function AdminUserDetailScreen() {
     if (!profile) return;
     Alert.alert(
       'Remove user?',
-      `"${profile.full_name}" and all of their listings, favorites, conversations, and messages will be permanently deleted. This cannot be undone. The auth account remains and must be removed separately from Supabase.`,
+      `"${profile.full_name}" and all of their listings and favorites will be permanently deleted. This cannot be undone. The auth account remains and must be removed separately from Supabase.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {

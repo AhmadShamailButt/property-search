@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState, type PropsWithChildren } from 'react';
 import { Alert, Platform } from 'react-native';
 import { type Session, type User } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
@@ -34,7 +34,10 @@ type AuthContextType = {
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
   resendVerificationEmail: (email: string) => Promise<{ error: string | null }>;
+  refreshProfile: () => Promise<void>;
 };
+
+const RESET_PASSWORD_PATH = 'reset-password';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -73,30 +76,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!session?.user) {
+  const refreshProfile = useCallback(async () => {
+    const userId = session?.user?.id;
+    if (!userId) {
       setProfile(null);
       return;
     }
-    let cancelled = false;
-    supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url, role, is_active')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) {
-          console.warn('[auth] failed to load profile:', error.message);
-          setProfile(null);
-          return;
-        }
-        setProfile((data as Profile) ?? null);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .eq('id', userId)
+      .single();
+    if (error) {
+      console.warn('[auth] failed to load profile:', error.message);
+      setProfile(null);
+      return;
+    }
+    setProfile((data as Profile) ?? null);
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    void refreshProfile();
+  }, [refreshProfile]);
 
   useEffect(() => {
     const handleURL = async (event: { url: string }) => {
@@ -152,7 +153,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
   };
 
   const resetPassword = async (email: string) => {
-    const redirectTo = Linking.createURL('reset-password');
+    // Web needs an https/http URL so the email link opens the browser build;
+    // native uses the custom-scheme deep link. Both must be added to Supabase
+    // → Auth → URL Configuration or Supabase silently drops them.
+    const redirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? `${window.location.origin}/${RESET_PASSWORD_PATH}`
+        : Linking.createURL(RESET_PASSWORD_PATH);
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     return { error: error?.message ?? null };
   };
@@ -181,6 +188,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         resetPassword,
         updatePassword,
         resendVerificationEmail,
+        refreshProfile,
       }}>
       {children}
     </AuthContext.Provider>

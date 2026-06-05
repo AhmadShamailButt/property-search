@@ -23,7 +23,7 @@ import {
 } from '@/utils/filters';
 
 const CITY_OPTIONS: { value: string | null; label: string }[] = [
-  { value: null, label: 'Any' },
+  { value: null, label: 'All' },
   ...SUPPORTED_CITIES.map((c) => ({ value: c.city, label: c.city })),
 ];
 

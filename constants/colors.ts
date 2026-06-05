@@ -30,6 +30,7 @@ export const Colors = {
     // Tab Bar
     tabIconDefault: '#94A3B8',
     tabIconSelected: '#0F172A',
+    tabActiveBg: 'rgba(15, 23, 42, 0.08)',
 
     // Status
     success: '#10B981',
@@ -92,8 +93,9 @@ export const Colors = {
     tint: '#38BDF8',
 
     // Tab Bar
-    tabIconDefault: '#64748B',
+    tabIconDefault: '#94A3B8',
     tabIconSelected: '#38BDF8',
+    tabActiveBg: 'rgba(56, 189, 248, 0.16)',
 
     // Status
     success: '#10B981',
